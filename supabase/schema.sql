@@ -116,9 +116,10 @@ CREATE INDEX IF NOT EXISTS idx_notifications_read_at ON notifications(read_at);
 CREATE INDEX IF NOT EXISTS idx_notifications_created_at ON notifications(created_at);
 
 -- Insert default accounts (passwords are SHA-256 hashes)
--- admin/Admin@123, encoder/Encoder@123, reviewer/Reviewer@123, viewer/Viewer@123
+-- marco/President@123, admin/Admin@123, encoder/Encoder@123, reviewer/Reviewer@123, viewer/Viewer@123
 INSERT INTO accounts (username, full_name, role, password_hash, access_json, department, email, status, notes, force_password_change, created_by, updated_by)
 VALUES
+    ('marco', 'Marco Qua', 'President', 'e5151ec16459678d36dd7f349a42530469ed80dc318a6fc3cbd428285dae37fb', '{"tabs":["summarySection","encodeSection","soaSection","agingSection","settingsSection","accountSection","auditSection"],"canEditSummary":true,"canEncode":true,"canCancel":true,"canExport":true,"canResetSample":true,"canAdminReset":true,"canResetOtherPasswords":true}', 'Management', '', 'Active', '', true, 'System', 'System'),
     ('admin', 'Office Admin', 'Admin', '8c6976e5b5410415bde908bd4dee15dfb167a9c873fc4bb8a81f6f2ab448a918', '{"tabs":["summarySection","encodeSection","soaSection","agingSection","settingsSection","accountSection"],"canEditSummary":true,"canEncode":true,"canCancel":true,"canExport":true,"canResetSample":true,"canAdminReset":true,"canResetOtherPasswords":true}', 'Accounting', '', 'Active', '', true, 'System', 'System'),
     ('encoder', 'Office Encoder', 'Encoder', '6b206a20e389328e3c553be2b962d28c25c32585e45c062b8042d77b70a41b26', '{"tabs":["summarySection","encodeSection","soaSection","agingSection"],"canEditSummary":true,"canEncode":true,"canCancel":false,"canExport":true,"canResetSample":false,"canAdminReset":false,"canResetOtherPasswords":false}', 'Accounting', '', 'Active', '', true, 'System', 'System'),
     ('reviewer', 'Office Reviewer', 'Reviewer', 'a9882846714a6b2c2a1f7f8b2e1c3d4e5f6a7b8c9d0e1f2a3b4c5d6e7f8a9b0c', '{"tabs":["summarySection","soaSection","agingSection"],"canEditSummary":false,"canEncode":false,"canCancel":true,"canExport":true,"canResetSample":false,"canAdminReset":false,"canResetOtherPasswords":false}', 'Accounting', '', 'Active', '', true, 'System', 'System'),

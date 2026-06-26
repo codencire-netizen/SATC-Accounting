@@ -12756,6 +12756,16 @@ a,.link-like{color:#0b5fb7!important;font-weight:800!important;}
       "canResetOtherPasswords",
     ];
     const ROLE_PERMISSIONS = {
+      President: {
+        tabs: ["summarySection", "encodeSection", "soaSection", "agingSection", "settingsSection", "accountSection", "auditSection"],
+        canEditSummary: true,
+        canEncode: true,
+        canCancel: true,
+        canAdminReset: true,
+        canResetSample: true,
+        canExport: true,
+        canResetOtherPasswords: true,
+      },
       Admin: {
         tabs: ["summarySection", "encodeSection", "soaSection", "agingSection", "settingsSection", "accountSection", "auditSection"],
         canEditSummary: true,
@@ -13653,7 +13663,7 @@ a,.link-like{color:#0b5fb7!important;font-weight:800!important;}
       const username = String(user.username || "").trim();
       const password = String(user.password || user.passwordHash || user.password_hash || "");
       const fullName = String(user.fullName || user.full_name || "").trim();
-      const role = ["Admin", "Encoder", "Reviewer", "Viewer"].includes(user.role) ? user.role : "Viewer";
+      const role = ["Admin", "Encoder", "Reviewer", "Viewer", "President"].includes(user.role) ? user.role : "Viewer";
       if (!username || !fullName) return null;
       const accessSource = user.access || user.permissions || user.access_json || {};
       const access = mergePermissionProfiles(role, parseJsonMaybe(accessSource) || {});
@@ -13883,6 +13893,7 @@ a,.link-like{color:#0b5fb7!important;font-weight:800!important;}
 
     function getDefaultAuthUsers() {
       return [
+        normalizeAuthUser({ username: "marco", fullName: "Marco Qua", role: "President", password: "President@123", status: "Active", department: "Management" }),
         normalizeAuthUser({ username: "admin", fullName: "Office Admin", role: "Admin", password: "Admin@123", status: "Active", department: "Accounting" }),
         normalizeAuthUser({ username: "encoder", fullName: "Office Encoder", role: "Encoder", password: "Encoder@123", status: "Active", department: "Accounting" }),
         normalizeAuthUser({ username: "reviewer", fullName: "Office Reviewer", role: "Reviewer", password: "Reviewer@123", status: "Active", department: "Accounting" }),
