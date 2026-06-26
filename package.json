@@ -1,0 +1,21 @@
+{
+  "name": "wholesale-sales-management",
+  "version": "1.0.0",
+  "description": "Wholesale Sales Management & SOA System for Sikat Araw Trading Corp.",
+  "private": true,
+  "scripts": {
+    "dev": "vercel dev",
+    "build": "tsc",
+    "start": "vercel dev",
+    "lint": "eslint api/**/*.ts",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@supabase/supabase-js": "^2.45.0"
+  },
+  "devDependencies": {
+    "@types/node": "^20.14.0",
+    "typescript": "^5.5.0",
+    "vercel": "^37.0.0"
+  }
+}
