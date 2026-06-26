@@ -1,31 +1,30 @@
-import type { VercelRequest, VercelResponse } from '@vercel/node';
-import { createHash } from 'crypto';
+const crypto = require('crypto');
 
 const SUPABASE_URL = process.env.SUPABASE_URL || '';
 const SUPABASE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY || '';
 
-function hashPassword(password: string): string {
-  return createHash('sha256').update(password).digest('hex');
+function hashPassword(password) {
+  return crypto.createHash('sha256').update(password).digest('hex');
 }
 
-async function supabaseQuery(table: string, method = 'GET', body: any = null) {
+async function supabaseQuery(table, method = 'GET', body = null) {
   const url = `${SUPABASE_URL}/rest/v1/${table}`;
-  const headers: any = { 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${SUPABASE_KEY}`, 'Content-Type': 'application/json', 'Prefer': method === 'POST' ? 'return=representation' : 'return=minimal' };
-  const opts: any = { method, headers };
+  const headers = { 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${SUPABASE_KEY}`, 'Content-Type': 'application/json', 'Prefer': method === 'POST' ? 'return=representation' : 'return=minimal' };
+  const opts = { method, headers };
   if (body && method !== 'GET') opts.body = JSON.stringify(body);
   const res = await fetch(url, opts);
   if (!res.ok) throw new Error(`Supabase ${res.status}: ${await res.text()}`);
   return res.json();
 }
 
-function json(res: VercelResponse, data: any, status = 200) {
+function json(res, data, status = 200) {
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
   res.status(status).json(data);
 }
 
-export default async function handler(req: VercelRequest, res: VercelResponse): Promise<void> {
+module.exports = async (req, res) => {
   if (req.method === 'OPTIONS') { res.status(200).end(); return; }
   const url = new URL(req.url || '/', `https://${req.headers.host}`);
   const path = url.pathname;
@@ -49,21 +48,21 @@ export default async function handler(req: VercelRequest, res: VercelResponse): 
       if (!user) return json(res, { error: 'Invalid username or password' }, 401);
       if (user.password_hash !== hashPassword(password) && user.password_hash !== password) return json(res, { error: 'Invalid username or password' }, 401);
       if (user.status === 'Disabled') return json(res, { error: 'Account is disabled' }, 403);
-      await supabaseQuery('accounts', 'PATCH', { last_login_at: new Date().toISOString() }).catch(() => supabaseQuery(`accounts?id=eq.${user.id}`, 'PATCH', { last_login_at: new Date().toISOString() }));
+      await supabaseQuery(`accounts?id=eq.${user.id}`, 'PATCH', { last_login_at: new Date().toISOString() }).catch(() => {});
       return json(res, { token: 'local-' + user.id, account: { id: user.id, username: user.username, fullName: user.full_name, role: user.role, department: user.department, email: user.email, status: user.status, access: user.access_json, forcePasswordChange: user.force_password_change, profileImage: user.profile_image || '' } });
     }
 
     if (method === 'GET' && path === '/api/accounts') {
       if (!SUPABASE_URL) return json(res, []);
       const data = await supabaseQuery('accounts?select=*&order=full_name');
-      return json(res, data.map((u: any) => ({ id: u.id, username: u.username, fullName: u.full_name, role: u.role, department: u.department, email: u.email, status: u.status, access: u.access_json, forcePasswordChange: u.force_password_change, profileImage: u.profile_image || '', createdAt: u.created_at, updatedAt: u.updated_at, lastLogin: u.last_login_at })));
+      return json(res, data.map(u => ({ id: u.id, username: u.username, fullName: u.full_name, role: u.role, department: u.department, email: u.email, status: u.status, access: u.access_json, forcePasswordChange: u.force_password_change, profileImage: u.profile_image || '', createdAt: u.created_at, updatedAt: u.updated_at, lastLogin: u.last_login_at })));
     }
 
     if (method === 'POST' && path === '/api/accounts') {
       if (!SUPABASE_URL) return json(res, { error: 'Database not configured' }, 503);
       const b = req.body || {};
       const data = await supabaseQuery('accounts', 'POST', { username: b.username, full_name: b.fullName, role: b.role || 'Viewer', password_hash: hashPassword(b.password), access_json: b.access || {}, department: b.department || 'Accounting', email: b.email || '', status: b.status || 'Active', notes: b.notes || '', force_password_change: b.forcePasswordChange ?? true, profile_image: b.profileImage || '' });
-      return json(res, { id: data[0]?.id, username: data[0]?.username }, 201);
+      return json(res, { id: data[0] && data[0].id, username: data[0] && data[0].username }, 201);
     }
 
     if (method === 'DELETE' && path.startsWith('/api/accounts/')) {
@@ -77,7 +76,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse): 
       if (!SUPABASE_URL) return json(res, { error: 'Database not configured' }, 503);
       const id = path.split('/').pop();
       const b = req.body || {};
-      const update: any = { updated_at: new Date().toISOString() };
+      const update = { updated_at: new Date().toISOString() };
       if (b.fullName !== undefined) update.full_name = b.fullName;
       if (b.role !== undefined) update.role = b.role;
       if (b.status !== undefined) update.status = b.status;
@@ -114,13 +113,13 @@ export default async function handler(req: VercelRequest, res: VercelResponse): 
 
     if (path === '/api/settings') {
       if (!SUPABASE_URL) return json(res, {});
-      if (method === 'GET') { const data = await supabaseQuery('settings?id=eq.1&select=payload_json'); return json(res, data[0]?.payload_json || {}); }
+      if (method === 'GET') { const data = await supabaseQuery('settings?id=eq.1&select=payload_json'); return json(res, data[0] && data[0].payload_json || {}); }
       if (method === 'POST' || method === 'PUT') { await supabaseQuery('settings', 'POST', { id: 1, payload_json: req.body, updated_at: new Date().toISOString() }); return json(res, { ok: true }); }
     }
 
     return json(res, { message: 'Not found', path }, 404);
-  } catch (err: any) {
+  } catch (err) {
     console.error('API Error:', err);
     return json(res, { error: err.message || 'Internal server error' }, 500);
   }
-}
+};
