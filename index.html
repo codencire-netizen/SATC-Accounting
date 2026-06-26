@@ -9776,6 +9776,8 @@
     }
     @media (max-width: 900px) {
       .app-shell { margin-left: 0 !important; }
+      .app-sidebar { transform: translateX(-100%) !important; position: fixed !important; }
+      .app-sidebar.open { transform: translateX(0) !important; }
       .app-topbar { margin: 0 8px 12px !important; }
       .section { padding: 12px !important; }
     }
@@ -10297,7 +10299,7 @@ a,.link-like{color:#0b5fb7!important;font-weight:800!important;}
 .audit-activity-list,.audit-recent-card{background:#f7f9fc!important;border:1px solid var(--p12-line)!important;}
 
 @media(max-width:1200px){.summary-dashboard-grid{grid-template-columns:repeat(2,minmax(0,1fr))!important}.soa-v4-grid,.soa-layout-grid{grid-template-columns:1fr!important}.phase12-login-card{width:min(960px,calc(100vw - 36px));}}
-@media(max-width:900px){body:not(.auth-locked) .app-shell{margin-left:0!important;width:100vw!important;max-width:100vw!important}.app-sidebar{transform:translateX(-100%)}.app-sidebar.open{transform:translateX(0)}.content{padding:14px!important}.summary-dashboard-grid{grid-template-columns:1fr!important}.phase12-login-card{padding:26px 20px;width:calc(100vw - 24px);}.phase12-product-copy h1{font-size:24px}.phase12-login-heading h2{font-size:28px}}
+@media(max-width:900px){body:not(.auth-locked) .app-shell{margin-left:0!important;width:100vw!important;max-width:100vw!important}.app-sidebar{transform:translateX(-100%)!important;position:fixed!important}.app-sidebar.open{transform:translateX(0)!important}.content{padding:14px!important}.summary-dashboard-grid{grid-template-columns:1fr!important}.phase12-login-card{padding:26px 20px;width:calc(100vw - 24px);}.phase12-product-copy h1{font-size:24px}.phase12-login-heading h2{font-size:28px}}
 </style>
 
 </head>
@@ -20636,19 +20638,11 @@ body:not(.auth-locked) #settingsSection input,body:not(.auth-locked) #settingsSe
 
 /* ===== PHASE 2: ≤900px — Sidebar hidden, hamburger shown, all grids → 1 col ===== */
 @media(max-width:900px){
-  .app-sidebar{transform:translateX(-100%)!important;width:260px!important;z-index:200!important;}
+  .app-sidebar{transform:translateX(-100%)!important;width:260px!important;z-index:200!important;position:fixed!important;}
   .app-sidebar.open{transform:translateX(0)!important;}
-  .topbar-hamburger{display:flex!important;}
   body:not(.auth-locked) .app-shell{margin-left:0!important;width:100vw!important;max-width:100vw!important;}
-  body:not(.auth-locked) .content{padding:14px!important;}
-  .summary-dashboard-grid{grid-template-columns:1fr!important;}
-  .metric-grid{grid-template-columns:1fr!important;}
-  .progress-grid{grid-template-columns:1fr!important;}
-  .soa-customer-dashboard{grid-template-columns:1fr!important;}
-  .soa-modern-metrics{grid-template-columns:1fr 1fr!important;}
-  .account-shell-grid{grid-template-columns:1fr!important;}
-  .audit-dashboard-grid{grid-template-columns:1fr!important;}
-  .summary-section-tabs{justify-content:center!important;}
+  body:not(.auth-locked) .content{padding:12px!important;}
+  .topbar-hamburger{display:flex!important;}
 }
 
 /* ===== PHASE 3: ≤768px — Encoding stacks, table fonts smaller, filter bar stacks ===== */
