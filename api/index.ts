@@ -1,13 +1,21 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
-import { createClient } from '@supabase/supabase-js';
 import { createHash } from 'crypto';
 
-const supabaseUrl = process.env.SUPABASE_URL || '';
-const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY || '';
-const supabase = supabaseUrl && supabaseKey ? createClient(supabaseUrl, supabaseKey) : null;
+const SUPABASE_URL = process.env.SUPABASE_URL || '';
+const SUPABASE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY || '';
 
 function hashPassword(password: string): string {
   return createHash('sha256').update(password).digest('hex');
+}
+
+async function supabaseQuery(table: string, method = 'GET', body: any = null) {
+  const url = `${SUPABASE_URL}/rest/v1/${table}`;
+  const headers: any = { 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${SUPABASE_KEY}`, 'Content-Type': 'application/json', 'Prefer': method === 'POST' ? 'return=representation' : 'return=minimal' };
+  const opts: any = { method, headers };
+  if (body && method !== 'GET') opts.body = JSON.stringify(body);
+  const res = await fetch(url, opts);
+  if (!res.ok) throw new Error(`Supabase ${res.status}: ${await res.text()}`);
+  return res.json();
 }
 
 function json(res: VercelResponse, data: any, status = 200) {
@@ -19,63 +27,57 @@ function json(res: VercelResponse, data: any, status = 200) {
 
 export default async function handler(req: VercelRequest, res: VercelResponse): Promise<void> {
   if (req.method === 'OPTIONS') { res.status(200).end(); return; }
-
   const url = new URL(req.url || '/', `https://${req.headers.host}`);
   const path = url.pathname;
   const method = req.method || 'GET';
 
   try {
-    // Health check
     if (method === 'GET' && path === '/api/health') {
-      const dbOk = supabase ? (await supabase.from('accounts').select('id').limit(1)).error === null : false;
-      return json(res, { ok: true, db: dbOk ? 'connected' : 'no-config', version: '1.0.0', time: new Date().toISOString() });
+      let dbStatus = 'no-config';
+      if (SUPABASE_URL && SUPABASE_KEY) {
+        try { await supabaseQuery('accounts?select=id&limit=1'); dbStatus = 'connected'; } catch { dbStatus = 'error'; }
+      }
+      return json(res, { ok: true, db: dbStatus, version: '1.0.0' });
     }
 
-    // Auth login
     if (method === 'POST' && path === '/api/auth/login') {
-      if (!supabase) return json(res, { error: 'Database not configured' }, 503);
+      if (!SUPABASE_URL) return json(res, { error: 'Database not configured' }, 503);
       const { username, password } = req.body || {};
       if (!username || !password) return json(res, { error: 'Username and password required' }, 400);
-      const { data, error } = await supabase.from('accounts').select('*').eq('username', username.toLowerCase().trim()).single();
-      if (error || !data) return json(res, { error: 'Invalid username or password' }, 401);
-      if (data.password_hash !== hashPassword(password) && data.password_hash !== password) return json(res, { error: 'Invalid username or password' }, 401);
-      if (data.status === 'Disabled') return json(res, { error: 'Account is disabled' }, 403);
-      await supabase.from('accounts').update({ last_login_at: new Date().toISOString() }).eq('id', data.id);
-      return json(res, { token: 'local-' + data.id, account: { id: data.id, username: data.username, fullName: data.full_name, role: data.role, department: data.department, email: data.email, status: data.status, access: data.access_json, forcePasswordChange: data.force_password_change, profileImage: data.profile_image || '' } });
+      const users = await supabaseQuery(`accounts?username=eq.${encodeURIComponent(username.toLowerCase().trim())}&select=*`);
+      const user = users[0];
+      if (!user) return json(res, { error: 'Invalid username or password' }, 401);
+      if (user.password_hash !== hashPassword(password) && user.password_hash !== password) return json(res, { error: 'Invalid username or password' }, 401);
+      if (user.status === 'Disabled') return json(res, { error: 'Account is disabled' }, 403);
+      await supabaseQuery('accounts', 'PATCH', { last_login_at: new Date().toISOString() }).catch(() => supabaseQuery(`accounts?id=eq.${user.id}`, 'PATCH', { last_login_at: new Date().toISOString() }));
+      return json(res, { token: 'local-' + user.id, account: { id: user.id, username: user.username, fullName: user.full_name, role: user.role, department: user.department, email: user.email, status: user.status, access: user.access_json, forcePasswordChange: user.force_password_change, profileImage: user.profile_image || '' } });
     }
 
-    // List accounts
     if (method === 'GET' && path === '/api/accounts') {
-      if (!supabase) return json(res, []);
-      const { data, error } = await supabase.from('accounts').select('*').order('full_name');
-      if (error) return json(res, { error: error.message }, 500);
-      return json(res, (data || []).map((u: any) => ({ id: u.id, username: u.username, fullName: u.full_name, role: u.role, department: u.department, email: u.email, status: u.status, access: u.access_json, forcePasswordChange: u.force_password_change, profileImage: u.profile_image || '', createdAt: u.created_at, updatedAt: u.updated_at, lastLogin: u.last_login_at })));
+      if (!SUPABASE_URL) return json(res, []);
+      const data = await supabaseQuery('accounts?select=*&order=full_name');
+      return json(res, data.map((u: any) => ({ id: u.id, username: u.username, fullName: u.full_name, role: u.role, department: u.department, email: u.email, status: u.status, access: u.access_json, forcePasswordChange: u.force_password_change, profileImage: u.profile_image || '', createdAt: u.created_at, updatedAt: u.updated_at, lastLogin: u.last_login_at })));
     }
 
-    // Create account
     if (method === 'POST' && path === '/api/accounts') {
-      if (!supabase) return json(res, { error: 'Database not configured' }, 503);
+      if (!SUPABASE_URL) return json(res, { error: 'Database not configured' }, 503);
       const b = req.body || {};
-      const { data, error } = await supabase.from('accounts').insert({ username: b.username, full_name: b.fullName, role: b.role || 'Viewer', password_hash: hashPassword(b.password), access_json: b.access || {}, department: b.department || 'Accounting', email: b.email || '', status: b.status || 'Active', notes: b.notes || '', force_password_change: b.forcePasswordChange ?? true, profile_image: b.profileImage || '' }).select().single();
-      if (error) return json(res, { error: error.message }, 500);
-      return json(res, { id: data.id, username: data.username }, 201);
+      const data = await supabaseQuery('accounts', 'POST', { username: b.username, full_name: b.fullName, role: b.role || 'Viewer', password_hash: hashPassword(b.password), access_json: b.access || {}, department: b.department || 'Accounting', email: b.email || '', status: b.status || 'Active', notes: b.notes || '', force_password_change: b.forcePasswordChange ?? true, profile_image: b.profileImage || '' });
+      return json(res, { id: data[0]?.id, username: data[0]?.username }, 201);
     }
 
-    // Delete account
     if (method === 'DELETE' && path.startsWith('/api/accounts/')) {
-      if (!supabase) return json(res, { error: 'Database not configured' }, 503);
+      if (!SUPABASE_URL) return json(res, { error: 'Database not configured' }, 503);
       const id = path.split('/').pop();
-      const { error } = await supabase.from('accounts').delete().eq('id', id);
-      if (error) return json(res, { error: error.message }, 500);
+      await supabaseQuery(`accounts?id=eq.${id}`, 'DELETE');
       return json(res, { ok: true });
     }
 
-    // Update account
     if (method === 'PUT' && path.startsWith('/api/accounts/')) {
-      if (!supabase) return json(res, { error: 'Database not configured' }, 503);
+      if (!SUPABASE_URL) return json(res, { error: 'Database not configured' }, 503);
       const id = path.split('/').pop();
       const b = req.body || {};
-      const update: any = {};
+      const update: any = { updated_at: new Date().toISOString() };
       if (b.fullName !== undefined) update.full_name = b.fullName;
       if (b.role !== undefined) update.role = b.role;
       if (b.status !== undefined) update.status = b.status;
@@ -85,69 +87,35 @@ export default async function handler(req: VercelRequest, res: VercelResponse): 
       if (b.password !== undefined) update.password_hash = hashPassword(b.password);
       if (b.profileImage !== undefined) update.profile_image = b.profileImage;
       if (b.forcePasswordChange !== undefined) update.force_password_change = b.forcePasswordChange;
-      update.updated_at = new Date().toISOString();
-      const { error } = await supabase.from('accounts').update(update).eq('id', id);
-      if (error) return json(res, { error: error.message }, 500);
+      await supabaseQuery(`accounts?id=eq.${id}`, 'PATCH', update);
       return json(res, { ok: true });
     }
 
-    // Transactions CRUD
     if (path === '/api/transactions' || path.startsWith('/api/transactions/')) {
-      if (!supabase) return json(res, []);
-      if (method === 'GET') {
-        const { data } = await supabase.from('transactions').select('*').order('created_at', { ascending: false }).limit(500);
-        return json(res, data || []);
-      }
-      if (method === 'POST') {
-        const { data, error } = await supabase.from('transactions').insert(req.body).select().single();
-        if (error) return json(res, { error: error.message }, 500);
-        return json(res, data, 201);
-      }
-      if (method === 'PUT') {
-        const id = path.split('/').pop();
-        const { error } = await supabase.from('transactions').update(req.body).eq('id', id);
-        if (error) return json(res, { error: error.message }, 500);
-        return json(res, { ok: true });
-      }
-      if (method === 'DELETE') {
-        const id = path.split('/').pop();
-        const { error } = await supabase.from('transactions').delete().eq('id', id);
-        if (error) return json(res, { error: error.message }, 500);
-        return json(res, { ok: true });
-      }
+      if (!SUPABASE_URL) return json(res, []);
+      if (method === 'GET') { const data = await supabaseQuery('transactions?order=created_at.desc&limit=500'); return json(res, data); }
+      if (method === 'POST') { const data = await supabaseQuery('transactions', 'POST', req.body); return json(res, data[0], 201); }
+      if (method === 'PUT') { const id = path.split('/').pop(); await supabaseQuery(`transactions?id=eq.${id}`, 'PATCH', req.body); return json(res, { ok: true }); }
+      if (method === 'DELETE') { const id = path.split('/').pop(); await supabaseQuery(`transactions?id=eq.${id}`, 'DELETE'); return json(res, { ok: true }); }
     }
 
-    // Customers
-    if (path === '/api/customers' || path.startsWith('/api/customers/')) {
-      if (!supabase) return json(res, []);
-      const { data } = await supabase.from('customers').select('*').order('name');
-      return json(res, data || []);
+    if (path === '/api/customers') {
+      if (!SUPABASE_URL) return json(res, []);
+      const data = await supabaseQuery('customers?select=*&order=name');
+      return json(res, data);
     }
 
-    // Audit log
-    if (path === '/api/audit' || path.startsWith('/api/audit/')) {
-      if (!supabase) return json(res, []);
-      if (method === 'POST') {
-        const { error } = await supabase.from('audit_log').insert(req.body);
-        if (error) console.warn('Audit log insert failed:', error.message);
-        return json(res, { ok: true });
-      }
-      const { data } = await supabase.from('audit_log').select('*').order('created_at', { ascending: false }).limit(500);
-      return json(res, data || []);
+    if (path === '/api/audit') {
+      if (!SUPABASE_URL) return json(res, []);
+      if (method === 'POST') { await supabaseQuery('audit_log', 'POST', req.body).catch(() => {}); return json(res, { ok: true }); }
+      const data = await supabaseQuery('audit_log?order=created_at.desc&limit=500');
+      return json(res, data);
     }
 
-    // Settings
     if (path === '/api/settings') {
-      if (!supabase) return json(res, {});
-      if (method === 'GET') {
-        const { data } = await supabase.from('settings').select('*').eq('id', 1).single();
-        return json(res, data?.payload_json || {});
-      }
-      if (method === 'POST' || method === 'PUT') {
-        const { error } = await supabase.from('settings').upsert({ id: 1, payload_json: req.body, updated_at: new Date().toISOString() });
-        if (error) return json(res, { error: error.message }, 500);
-        return json(res, { ok: true });
-      }
+      if (!SUPABASE_URL) return json(res, {});
+      if (method === 'GET') { const data = await supabaseQuery('settings?id=eq.1&select=payload_json'); return json(res, data[0]?.payload_json || {}); }
+      if (method === 'POST' || method === 'PUT') { await supabaseQuery('settings', 'POST', { id: 1, payload_json: req.body, updated_at: new Date().toISOString() }); return json(res, { ok: true }); }
     }
 
     return json(res, { message: 'Not found', path }, 404);
