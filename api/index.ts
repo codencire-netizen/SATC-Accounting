@@ -1,9 +1,14 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
 import { createClient } from '@supabase/supabase-js';
+import { createHash } from 'crypto';
 
 const supabaseUrl = process.env.SUPABASE_URL || '';
 const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY || '';
 const supabase = supabaseUrl && supabaseKey ? createClient(supabaseUrl, supabaseKey) : null;
+
+function hashPassword(password: string): string {
+  return createHash('sha256').update(password).digest('hex');
+}
 
 function json(res: VercelResponse, data: any, status = 200) {
   res.setHeader('Access-Control-Allow-Origin', '*');
@@ -33,7 +38,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse): 
       if (!username || !password) return json(res, { error: 'Username and password required' }, 400);
       const { data, error } = await supabase.from('accounts').select('*').eq('username', username.toLowerCase().trim()).single();
       if (error || !data) return json(res, { error: 'Invalid username or password' }, 401);
-      if (data.password_hash !== password) return json(res, { error: 'Invalid username or password' }, 401);
+      if (data.password_hash !== hashPassword(password) && data.password_hash !== password) return json(res, { error: 'Invalid username or password' }, 401);
       if (data.status === 'Disabled') return json(res, { error: 'Account is disabled' }, 403);
       await supabase.from('accounts').update({ last_login_at: new Date().toISOString() }).eq('id', data.id);
       return json(res, { token: 'local-' + data.id, account: { id: data.id, username: data.username, fullName: data.full_name, role: data.role, department: data.department, email: data.email, status: data.status, access: data.access_json, forcePasswordChange: data.force_password_change, profileImage: data.profile_image || '' } });
@@ -51,7 +56,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse): 
     if (method === 'POST' && path === '/api/accounts') {
       if (!supabase) return json(res, { error: 'Database not configured' }, 503);
       const b = req.body || {};
-      const { data, error } = await supabase.from('accounts').insert({ username: b.username, full_name: b.fullName, role: b.role || 'Viewer', password_hash: b.password, access_json: b.access || {}, department: b.department || 'Accounting', email: b.email || '', status: b.status || 'Active', notes: b.notes || '', force_password_change: b.forcePasswordChange ?? true, profile_image: b.profileImage || '' }).select().single();
+      const { data, error } = await supabase.from('accounts').insert({ username: b.username, full_name: b.fullName, role: b.role || 'Viewer', password_hash: hashPassword(b.password), access_json: b.access || {}, department: b.department || 'Accounting', email: b.email || '', status: b.status || 'Active', notes: b.notes || '', force_password_change: b.forcePasswordChange ?? true, profile_image: b.profileImage || '' }).select().single();
       if (error) return json(res, { error: error.message }, 500);
       return json(res, { id: data.id, username: data.username }, 201);
     }
@@ -77,7 +82,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse): 
       if (b.email !== undefined) update.email = b.email;
       if (b.department !== undefined) update.department = b.department;
       if (b.access !== undefined) update.access_json = b.access;
-      if (b.password !== undefined) update.password_hash = b.password;
+      if (b.password !== undefined) update.password_hash = hashPassword(b.password);
       if (b.profileImage !== undefined) update.profile_image = b.profileImage;
       if (b.forcePasswordChange !== undefined) update.force_password_change = b.forcePasswordChange;
       update.updated_at = new Date().toISOString();
