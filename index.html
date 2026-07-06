@@ -11522,6 +11522,10 @@ a,.link-like{color:#0b5fb7!important;font-weight:800!important;}
                         <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><path d="M17 21v-8H7v8"/><path d="M7 3v5h8"/></svg>
                         Save Transaction
                       </button>
+                      <button class="btn btn-secondary" id="printInvoiceBtn" type="button" onclick="printInvoice()">
+                        <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9V2h12v7"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg>
+                        Print Invoice
+                      </button>
                     </div>
                   </div>
                 </div>
@@ -11950,6 +11954,58 @@ a,.link-like{color:#0b5fb7!important;font-weight:800!important;}
                   </div>
                 </div>
               </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Invoice Print Template -->
+      <section class="section" id="invoicePrintSection" style="display:none;">
+        <div class="invoice-print-container" id="invoicePrintContainer">
+          <div class="invoice-print-header">
+            <div class="invoice-print-company">
+              <img src="assets/satc-logo-clean.png" alt="Sikat Araw" class="invoice-print-logo" />
+              <div>
+                <strong>Sikat Araw Trading Corp.</strong><br>
+                <small>Rm. 1115 State Center Bldg. 333 Juan Luna St., Binondo Manila</small><br>
+                <small>Tel. Nos. 02-8-242-5511 to 18</small>
+              </div>
+            </div>
+            <div class="invoice-print-meta">
+              <table>
+                <tr><td>SI No.</td><td id="printSiNo">-</td></tr>
+                <tr><td>Date</td><td id="printDate">-</td></tr>
+                <tr><td>Customer</td><td id="printCustomer">-</td></tr>
+                <tr><td>TIN</td><td id="printTin">-</td></tr>
+                <tr><td>Address</td><td id="printAddress">-</td></tr>
+                <tr><td>Terms</td><td id="printTerms">-</td></tr>
+              </table>
+            </div>
+          </div>
+          <table class="invoice-print-items">
+            <thead>
+              <tr>
+                <th>Item Description</th>
+                <th>Quantity</th>
+                <th>Unit</th>
+                <th>Unit Price</th>
+                <th>Amount</th>
+              </tr>
+            </thead>
+            <tbody id="printItemsBody"></tbody>
+            <tfoot>
+              <tr><td colspan="4" style="text-align:right;">Subtotal</td><td id="printSubtotal">₱0.00</td></tr>
+              <tr><td colspan="4" style="text-align:right;">Less: Returns/Discount</td><td id="printReturns">₱0.00</td></tr>
+              <tr><td colspan="4" style="text-align:right;">Less: EWT (1%)</td><td id="printEwt">₱0.00</td></tr>
+              <tr><td colspan="4" style="text-align:right;"><strong>NET SALES</strong></td><td id="printNetSales"><strong>₱0.00</strong></td></tr>
+              <tr><td colspan="4" style="text-align:right;">ADD: VAT (12%)</td><td id="printVat">₱0.00</td></tr>
+              <tr><td colspan="4" style="text-align:right;"><strong>TOTAL AMOUNT DUE</strong></td><td id="printTotalDue"><strong>₱0.00</strong></td></tr>
+            </tfoot>
+          </table>
+          <div class="invoice-print-footer">
+            <div class="invoice-print-signature">
+              <div>Prepared by: <span id="printPreparedBy">-</span></div>
+              <div>Approved by: <span id="printApprovedBy">-</span></div>
             </div>
           </div>
         </div>
@@ -13377,6 +13433,42 @@ a,.link-like{color:#0b5fb7!important;font-weight:800!important;}
         hour: "2-digit",
         minute: "2-digit",
       });
+    }
+
+    function printInvoice() {
+      const invNo = els.encodeInvNo?.value || '';
+      const customer = els.encodeCustomer?.value || '';
+      const date = els.encodeDate?.value || '';
+      const tin = els.encodeCustomerTin?.value || '';
+      const address = els.encodeCustomerAddress?.value || '';
+      const paymentTerms = els.encodePaymentTerms?.value || '30';
+      const gross = Number(els.encodeGross?.value || 0);
+      const freight = Number(els.encodeFreight?.value || 0);
+      const returns = Number(els.encodeReturns?.value || 0);
+      const ewt = Number(els.encodeEwt?.value || 0);
+      const netSales = gross + freight - returns - ewt;
+      const vat = netSales * 0.12;
+      const totalDue = netSales + vat;
+      const preparedBy = state.currentUser?.fullName || 'Office Admin';
+      const approvedBy = state.settings?.defaultApprovedBy || 'Manager';
+      document.getElementById('printSiNo').textContent = invNo || '-';
+      document.getElementById('printDate').textContent = date || '-';
+      document.getElementById('printCustomer').textContent = customer || '-';
+      document.getElementById('printTin').textContent = tin || '-';
+      document.getElementById('printAddress').textContent = address || '-';
+      document.getElementById('printTerms').textContent = paymentTerms + ' DAYS';
+      document.getElementById('printItemsBody').innerHTML = '<tr><td>Assorted Fresh and Frozen Seafood</td><td>-</td><td>-</td><td>-</td><td>' + formatCurrency(gross) + '</td></tr>';
+      document.getElementById('printSubtotal').textContent = formatCurrency(gross);
+      document.getElementById('printReturns').textContent = formatCurrency(returns);
+      document.getElementById('printEwt').textContent = formatCurrency(ewt);
+      document.getElementById('printNetSales').innerHTML = '<strong>' + formatCurrency(netSales) + '</strong>';
+      document.getElementById('printVat').textContent = formatCurrency(vat);
+      document.getElementById('printTotalDue').innerHTML = '<strong>' + formatCurrency(totalDue) + '</strong>';
+      document.getElementById('printPreparedBy').textContent = preparedBy;
+      document.getElementById('printApprovedBy').textContent = approvedBy;
+      document.getElementById('invoicePrintSection').style.display = 'block';
+      window.print();
+      setTimeout(() => { document.getElementById('invoicePrintSection').style.display = 'none'; }, 1000);
     }
 
     function formatCurrency(value) {
@@ -21095,6 +21187,31 @@ body:not(.auth-locked) .topbar-page-info p{
 }
 .section-tab.active .section-tab-count{background:rgba(255,255,255,.2);color:#ffffff;}
 
+/* Invoice Print Template */
+.invoice-print-container{
+  background:#fff!important;color:#000!important;font-family:'Times New Roman',serif;font-size:11px;line-height:1.4;padding:20px;max-width:816px;margin:0 auto;
+}
+.invoice-print-header{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:16px;border-bottom:2px solid #000;padding-bottom:12px;}
+.invoice-print-company{display:flex;gap:12px;align-items:flex-start;}
+.invoice-print-logo{width:80px;height:80px;object-fit:contain;}
+.invoice-print-company strong{font-size:14px;color:#000;}
+.invoice-print-company small{font-size:9px;color:#333;}
+.invoice-print-meta table{border-collapse:collapse;}
+.invoice-print-meta td{padding:2px 8px;font-size:10px;color:#000;}
+.invoice-print-meta td:first-child{font-weight:bold;width:80px;}
+.invoice-print-items{width:100%;border-collapse:collapse;margin:12px 0;}
+.invoice-print-items th{background:#f0f0f0;border:1px solid #999;padding:6px 8px;font-size:10px;text-align:left;font-weight:bold;}
+.invoice-print-items td{border:1px solid #ccc;padding:5px 8px;font-size:10px;}
+.invoice-print-items tfoot td{border-top:2px solid #000;font-weight:bold;}
+.invoice-print-footer{margin-top:20px;display:flex;justify-content:space-between;padding-top:12px;border-top:1px solid #ccc;}
+.invoice-print-signature div{font-size:10px;margin-bottom:4px;}
+@media print{
+  .no-print,.app-sidebar,.app-topbar,.summary-section-tabs,.filter-bar,.summary-table-card,.summary-metric-card,.summary-progress-card,.progress-grid,.section-head,.aging-v5-filter-card,.aging-v5-metrics,.aging-v5-table-card,.audit-dashboard-grid,.audit-content-grid,.settings-layout,.account-workspace,.encode-workspace{display:none!important;}
+  .section{display:none!important;}
+  #invoicePrintSection{display:block!important;position:fixed;top:0;left:0;width:100%;height:100%;z-index:9999;background:#fff;padding:20px;overflow:auto;}
+  .invoice-print-container{max-width:100%;box-shadow:none;border:none;}
+  body{background:#fff!important;}
+}
 /* All secondary/dark buttons globally */
 body:not(.auth-locked) .btn-secondary,
 body:not(.auth-locked) .btn-dark{
