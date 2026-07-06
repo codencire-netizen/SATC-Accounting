@@ -14,11 +14,10 @@
     .print-bar .btn-print { background: #fff; color: #1d6fd6; }
     .print-bar .btn-back { background: rgba(255,255,255,.2); color: #fff; }
     body { padding-top: 55px; }
-    .si-sheet {
-      width: 210mm; height: 297mm; margin: 0 auto; padding: 0;
-      background: #fff; border: 1px solid #999; position: relative; overflow: hidden;
-    }
+    .si-sheet { width: 210mm; min-height: 297mm; margin: 0 auto; padding: 0; background: #fff; border: 1px solid #999; position: relative; overflow: hidden; }
     .si-cell { position: absolute; font-size: 9px; line-height: 1.2; }
+    .si-input { background: transparent; border: none; font-size: inherit; font-family: inherit; width: 100%; color: #000; outline: none; padding: 0; }
+    .si-input:focus { background: #ffffcc; }
     .si-mark { top: 5mm; left: 40mm; font-size: 10px; }
     .si-date { top: 5mm; right: 18mm; font-size: 9px; }
     .si-customer { top: 22mm; left: 48mm; font-size: 11px; font-weight: bold; }
@@ -39,9 +38,9 @@
     .si-signature { position: absolute; bottom: 22mm; right: 15mm; text-align: center; }
     .si-signature .sig-line { border-top: 1px solid #000; width: 100px; margin-top: 25px; padding-top: 3px; font-size: 8px; }
     @media print {
-      body { background: #fff; padding: 0; }
       .print-bar { display: none !important; }
-      .si-sheet { border: none; box-shadow: none; width: 100%; height: auto; }
+      .si-sheet { border: none; box-shadow: none; width: 100%; }
+      .si-input { background: transparent !important; border: none !important; }
     }
   </style>
 </head>
@@ -51,62 +50,27 @@
     <button class="btn-back" onclick="history.back()">Back</button>
   </div>
   <div class="si-sheet">
-    <div class="si-cell si-mark" id="siMark">x</div>
-    <div class="si-cell si-date" id="siDate">-</div>
-    <div class="si-cell si-customer" id="siCustomer">-</div>
-    <div class="si-cell si-tin" id="siTin">-</div>
-    <div class="si-cell si-address" id="siAddress">-</div>
+    <div class="si-cell si-mark">x</div>
+    <div class="si-cell si-date"><input class="si-input" id="siDate" placeholder="Date"></div>
+    <div class="si-cell si-customer"><input class="si-input" id="siCustomer" placeholder="Customer Name"></div>
+    <div class="si-cell si-tin"><input class="si-input" id="siTin" placeholder="TIN"></div>
+    <div class="si-cell si-address"><input class="si-input" id="siAddress" placeholder="Address"></div>
     <div class="si-cell si-period-label">SALES PERIOD:</div>
-    <div class="si-cell si-period-value" id="siPeriod">-</div>
-    <div class="si-cell si-product" id="siProduct">ASSORTED FRESH AND FROZEN SEAFOOD</div>
-    <div class="si-cell si-amount" id="siAmount">-</div>
+    <div class="si-cell si-period-value"><input class="si-input" id="siPeriod" placeholder="e.g. JUNE 15-21, 2026"></div>
+    <div class="si-cell si-product"><input class="si-input" id="siProduct" placeholder="Product description"></div>
+    <div class="si-cell si-amount"><input class="si-input" id="siAmount" type="number" step="0.01" placeholder="0.00" oninput="calcTotals()"></div>
     <div class="si-totals">
       <table>
-        <tr>
-          <td class="label" id="siTotalVatIncLabel">TOTAL SALES VAT INC</td>
-          <td class="value" id="siTotalVatInc">-</td>
-          <td></td>
-          <td class="cat">VATABLE SALE</td>
-        </tr>
-        <tr>
-          <td class="label">LESS VAT</td>
-          <td class="value" id="siLessVat">-</td>
-          <td></td>
-          <td class="cat">VAT</td>
-        </tr>
-        <tr>
-          <td class="label">NET OF VAT</td>
-          <td class="value" id="siNetVat">-</td>
-          <td></td>
-          <td class="cat">ZERO RATED SALES</td>
-        </tr>
-        <tr>
-          <td class="label">LESS DISCOUNT</td>
-          <td class="value" id="siDiscount">-</td>
-          <td></td>
-          <td class="cat">VAT EXEMPT SALES</td>
-        </tr>
-        <tr>
-          <td class="label">LESS EWT</td>
-          <td class="value" id="siEwt">-</td>
-          <td></td>
-          <td class="cat">LESS EWT</td>
-        </tr>
-        <tr>
-          <td class="label">ADD: VAT</td>
-          <td class="value" id="siAddVat">-</td>
-          <td></td>
-          <td class="cat">ADD: VAT</td>
-        </tr>
-        <tr class="total-row">
-          <td class="label">TOTAL AMOUNT DUE</td>
-          <td class="value" id="siTotalDue">-</td>
-          <td></td>
-          <td class="cat">TOTAL AMOUNT DUE</td>
-        </tr>
+        <tr><td class="label">TOTAL SALES VAT INC</td><td class="value" id="siTotalVatInc">-</td><td></td><td class="cat">VATABLE SALE</td></tr>
+        <tr><td class="label">LESS VAT</td><td class="value" id="siLessVat">-</td><td></td><td class="cat">VAT</td></tr>
+        <tr><td class="label">NET OF VAT</td><td class="value" id="siNetVat">-</td><td></td><td class="cat">ZERO RATED SALES</td></tr>
+        <tr><td class="label">LESS DISCOUNT</td><td class="value"><input class="si-input" id="siDiscount" type="number" step="0.01" value="0" oninput="calcTotals()" style="text-align:right;width:70px;"></td><td></td><td class="cat">VAT EXEMPT SALES</td></tr>
+        <tr><td class="label">LESS EWT</td><td class="value" id="siEwt">-</td><td></td><td class="cat">LESS EWT</td></tr>
+        <tr><td class="label">ADD: VAT</td><td class="value" id="siAddVat">-</td><td></td><td class="cat">ADD: VAT</td></tr>
+        <tr class="total-row"><td class="label">TOTAL AMOUNT DUE</td><td class="value" id="siTotalDue">-</td><td></td><td class="cat">TOTAL AMOUNT DUE</td></tr>
       </table>
     </div>
-    <div class="si-cell si-prepared">Prepared by: <span id="siPreparedBy">-</span></div>
+    <div class="si-cell si-prepared"><input class="si-input" id="siPreparedBy" placeholder="Prepared by"></div>
     <div class="si-cell si-signature">
       <div class="sig-line"></div>
       <small>Authorized Signature</small>
@@ -115,35 +79,32 @@
   <script>
     const p = new URLSearchParams(window.location.search);
     const fmt = (v) => '₱' + Number(v || 0).toLocaleString('en-PH', {minimumFractionDigits: 2, maximumFractionDigits: 2});
+    document.getElementById('siCustomer').value = p.get('customer') || '';
+    document.getElementById('siTin').value = p.get('tin') || '';
+    document.getElementById('siAddress').value = p.get('address') || '';
+    document.getElementById('siPeriod').value = p.get('period') || '';
+    document.getElementById('siProduct').value = p.get('description') || '';
+    document.getElementById('siAmount').value = p.get('gross') || '';
+    document.getElementById('siDiscount').value = p.get('discount') || '0';
+    document.getElementById('siPreparedBy').value = p.get('preparedBy') || '';
     const dateVal = p.get('date');
-    let dateStr = '-';
-    if (dateVal) { const d = new Date(dateVal); dateStr = d.toLocaleDateString('en-PH', {year:'numeric',month:'long',day:'2-digit'}); }
-    document.getElementById('siDate').textContent = dateStr;
-    document.getElementById('siCustomer').textContent = ' ' + (p.get('customer') || '-');
-    document.getElementById('siTin').textContent = ' ' + (p.get('tin') || '-');
-    document.getElementById('siAddress').textContent = ' ' + (p.get('address') || '-');
-    document.getElementById('siPeriod').textContent = p.get('period') || '-';
-    document.getElementById('siProduct').textContent = p.get('description') || 'ASSORTED FRESH AND FROZEN SEAFOOD';
-    const gross = parseFloat(p.get('gross') || 0);
-    const freight = parseFloat(p.get('freight') || 0);
-    const returns = parseFloat(p.get('returns') || 0);
-    const ewt = parseFloat(p.get('ewt') || 0);
-    const discount = parseFloat(p.get('discount') || 0);
-    const totalVatInc = gross + freight;
-    const lessVat = totalVatInc / 1.12 * 0.12;
-    const netVat = totalVatInc - lessVat;
-    const lessEwt = ewt;
-    const addVat = lessVat;
-    const totalDue = netVat - discount - lessEwt + addVat;
-    document.getElementById('siAmount').textContent = fmt(gross);
-    document.getElementById('siTotalVatInc').textContent = fmt(totalVatInc);
-    document.getElementById('siLessVat').textContent = fmt(lessVat);
-    document.getElementById('siNetVat').textContent = fmt(netVat);
-    document.getElementById('siDiscount').textContent = fmt(discount);
-    document.getElementById('siEwt').textContent = fmt(lessEwt);
-    document.getElementById('siAddVat').textContent = fmt(addVat);
-    document.getElementById('siTotalDue').textContent = fmt(totalDue);
-    document.getElementById('siPreparedBy').textContent = p.get('preparedBy') || 'M. Molo';
+    if (dateVal) { const d = new Date(dateVal); document.getElementById('siDate').value = d.toLocaleDateString('en-PH', {year:'numeric',month:'long',day:'2-digit'}); }
+    calcTotals();
+    function calcTotals() {
+      const gross = parseFloat(document.getElementById('siAmount').value || 0);
+      const discount = parseFloat(document.getElementById('siDiscount').value || 0);
+      const totalVatInc = gross;
+      const lessVat = totalVatInc / 1.12 * 0.12;
+      const netVat = totalVatInc - lessVat;
+      const addVat = lessVat;
+      const totalDue = netVat - discount + addVat;
+      document.getElementById('siTotalVatInc').textContent = fmt(totalVatInc);
+      document.getElementById('siLessVat').textContent = fmt(lessVat);
+      document.getElementById('siNetVat').textContent = fmt(netVat);
+      document.getElementById('siEwt').textContent = fmt(0);
+      document.getElementById('siAddVat').textContent = fmt(addVat);
+      document.getElementById('siTotalDue').textContent = fmt(totalDue);
+    }
   </script>
 </body>
 </html>
