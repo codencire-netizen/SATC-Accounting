@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Print Invoice - Sikat Araw Trading Corp.</title>
+  <link rel="icon" type="image/png" href="assets/wholesale-sales-management-favicon.png">
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: 'Times New Roman', serif; background: #f0f0f0; padding: 20px; }
+    .invoice-container { background: #fff; color: #000; font-size: 11px; line-height: 1.4; padding: 30px; max-width: 816px; margin: 0 auto; border: 1px solid #ccc; }
+    .invoice-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 16px; border-bottom: 2px solid #000; padding-bottom: 12px; }
+    .invoice-company { display: flex; gap: 12px; align-items: flex-start; }
+    .invoice-logo { width: 80px; height: 80px; object-fit: contain; }
+    .invoice-company strong { font-size: 14px; color: #000; }
+    .invoice-company small { font-size: 9px; color: #333; }
+    .invoice-meta table { border-collapse: collapse; }
+    .invoice-meta td { padding: 2px 8px; font-size: 10px; color: #000; }
+    .invoice-meta td:first-child { font-weight: bold; width: 80px; }
+    .invoice-items { width: 100%; border-collapse: collapse; margin: 12px 0; }
+    .invoice-items th { background: #f0f0f0; border: 1px solid #999; padding: 6px 8px; font-size: 10px; text-align: left; font-weight: bold; }
+    .invoice-items td { border: 1px solid #ccc; padding: 5px 8px; font-size: 10px; }
+    .invoice-items tfoot td { border-top: 2px solid #000; font-weight: bold; }
+    .invoice-footer { margin-top: 20px; display: flex; justify-content: space-between; padding-top: 12px; border-top: 1px solid #ccc; }
+    .invoice-signature div { font-size: 10px; margin-bottom: 4px; }
+    .print-actions { text-align: center; margin: 20px 0; }
+    .print-actions button { padding: 10px 24px; font-size: 14px; cursor: pointer; border: none; border-radius: 8px; }
+    .btn-print { background: #1d6fd6; color: #fff; }
+    .btn-back { background: #f1f5f9; color: #334155; border: 1px solid #e2e8f0; margin-left: 10px; }
+    @media print { .print-actions { display: none; } body { background: #fff; padding: 0; } .invoice-container { border: none; box-shadow: none; max-width: 100%; } }
+  </style>
+</head>
+<body>
+  <div class="print-actions">
+    <button class="btn-print" onclick="window.print()">Print Invoice</button>
+    <button class="btn-back" onclick="history.back()">Back to Encoding</button>
+  </div>
+  <div class="invoice-container">
+    <div class="invoice-header">
+      <div class="invoice-company">
+        <img src="assets/satc-logo-clean.png" alt="Sikat Araw" class="invoice-logo" />
+        <div>
+          <strong>Sikat Araw Trading Corp.</strong><br>
+          <small>Rm. 1115 State Center Bldg. 333 Juan Luna St., Binondo Manila</small><br>
+          <small>Tel. Nos. 02-8-242-5511 to 18</small>
+        </div>
+      </div>
+      <div class="invoice-meta">
+        <table>
+          <tr><td>SI No.</td><td id="printSiNo">-</td></tr>
+          <tr><td>Date</td><td id="printDate">-</td></tr>
+          <tr><td>Customer</td><td id="printCustomer">-</td></tr>
+          <tr><td>TIN</td><td id="printTin">-</td></tr>
+          <tr><td>Address</td><td id="printAddress">-</td></tr>
+          <tr><td>Terms</td><td id="printTerms">-</td></tr>
+        </table>
+      </div>
+    </div>
+    <table class="invoice-items">
+      <thead>
+        <tr><th>Item Description</th><th>Quantity</th><th>Unit</th><th>Unit Price</th><th>Amount</th></tr>
+      </thead>
+      <tbody id="printItemsBody">
+        <tr><td>Assorted Fresh and Frozen Seafood</td><td>-</td><td>-</td><td>-</td><td id="printItemAmount">-</td></tr>
+      </tbody>
+      <tfoot>
+        <tr><td colspan="4" style="text-align:right;">Subtotal</td><td id="printSubtotal">₱0.00</td></tr>
+        <tr><td colspan="4" style="text-align:right;">Less: Returns/Discount</td><td id="printReturns">₱0.00</td></tr>
+        <tr><td colspan="4" style="text-align:right;">Less: EWT (1%)</td><td id="printEwt">₱0.00</td></tr>
+        <tr><td colspan="4" style="text-align:right;"><strong>NET SALES</strong></td><td id="printNetSales"><strong>₱0.00</strong></td></tr>
+        <tr><td colspan="4" style="text-align:right;">ADD: VAT (12%)</td><td id="printVat">₱0.00</td></tr>
+        <tr><td colspan="4" style="text-align:right;"><strong>TOTAL AMOUNT DUE</strong></td><td id="printTotalDue"><strong>₱0.00</strong></td></tr>
+      </tfoot>
+    </table>
+    <div class="invoice-footer">
+      <div>Prepared by: <span id="printPreparedBy">-</span></div>
+      <div>Approved by: <span id="printApprovedBy">-</span></div>
+    </div>
+  </div>
+  <script>
+    const params = new URLSearchParams(window.location.search);
+    document.getElementById('printSiNo').textContent = params.get('invNo') || '-';
+    document.getElementById('printDate').textContent = params.get('date') || '-';
+    document.getElementById('printCustomer').textContent = params.get('customer') || '-';
+    document.getElementById('printTin').textContent = params.get('tin') || '-';
+    document.getElementById('printAddress').textContent = params.get('address') || '-';
+    document.getElementById('printTerms').textContent = (params.get('terms') || '30') + ' DAYS';
+    const gross = parseFloat(params.get('gross') || 0);
+    const freight = parseFloat(params.get('freight') || 0);
+    const returns = parseFloat(params.get('returns') || 0);
+    const ewt = parseFloat(params.get('ewt') || 0);
+    const netSales = gross + freight - returns - ewt;
+    const vat = netSales * 0.12;
+    const totalDue = netSales + vat;
+    document.getElementById('printItemAmount').textContent = '₱' + gross.toLocaleString('en-PH', {minimumFractionDigits: 2});
+    document.getElementById('printSubtotal').textContent = '₱' + gross.toLocaleString('en-PH', {minimumFractionDigits: 2});
+    document.getElementById('printReturns').textContent = '₱' + returns.toLocaleString('en-PH', {minimumFractionDigits: 2});
+    document.getElementById('printEwt').textContent = '₱' + ewt.toLocaleString('en-PH', {minimumFractionDigits: 2});
+    document.getElementById('printNetSales').innerHTML = '<strong>₱' + netSales.toLocaleString('en-PH', {minimumFractionDigits: 2}) + '</strong>';
+    document.getElementById('printVat').textContent = '₱' + vat.toLocaleString('en-PH', {minimumFractionDigits: 2});
+    document.getElementById('printTotalDue').innerHTML = '<strong>₱' + totalDue.toLocaleString('en-PH', {minimumFractionDigits: 2}) + '</strong>';
+    document.getElementById('printPreparedBy').textContent = params.get('preparedBy') || 'Office Admin';
+    document.getElementById('printApprovedBy').textContent = params.get('approvedBy') || 'Manager';
+  </script>
+</body>
+</html>
