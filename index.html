@@ -11522,6 +11522,10 @@ a,.link-like{color:#0b5fb7!important;font-weight:800!important;}
                         <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><path d="M17 21v-8H7v8"/><path d="M7 3v5h8"/></svg>
                         Save Transaction
                       </button>
+                      <button class="btn btn-secondary" id="printInvoiceBtn" type="button" onclick="openPrintInvoice()">
+                        <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9V2h12v7"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg>
+                        Print Invoice
+                      </button>
                     </div>
                   </div>
                 </div>
@@ -13377,6 +13381,27 @@ a,.link-like{color:#0b5fb7!important;font-weight:800!important;}
         hour: "2-digit",
         minute: "2-digit",
       });
+    }
+
+    function openPrintInvoice() {
+      const invNo = els.encodeInvNo?.value || '';
+      const customer = els.encodeCustomer?.value || '';
+      const date = els.encodeDate?.value || '';
+      const tin = els.encodeCustomerTin?.value || '';
+      const address = els.encodeCustomerAddress?.value || '';
+      const terms = els.encodePaymentTerms?.value || '30';
+      const modePayment = els.encodePaymentStatus?.value || 'B2B thru BDO';
+      const gross = els.encodeGross?.value || 0;
+      const freight = els.encodeFreight?.value || 0;
+      const returns = els.encodeReturns?.value || 0;
+      const ewt = els.encodeEwt?.value || 0;
+      const preparedBy = state.currentUser?.fullName || 'Office Admin';
+      const approvedBy = state.settings?.defaultApprovedBy || 'Manager';
+      const params = new URLSearchParams({
+        invNo, date, customer, tin, address, terms, modePayment,
+        gross, freight, returns, ewt, preparedBy, approvedBy
+      });
+      window.open('invoice-print.html?' + params.toString(), '_blank');
     }
 
     function formatCurrency(value) {
