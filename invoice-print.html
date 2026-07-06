@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Sales Invoice - Sikat Araw Trading Corp.</title>
+  <link rel="icon" type="image/png" href="assets/wholesale-sales-management-favicon.png">
+  <style>
+    @page { size: A4; margin: 15mm; }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: 'Times New Roman', 'Arial', serif; background: #e8e8e8; padding: 20px; }
+    .invoice-sheet { background: #fff; color: #000; width: 210mm; min-height: 297mm; margin: 0 auto; padding: 12mm 15mm; border: 1px solid #ccc; box-shadow: 0 4px 20px rgba(0,0,0,.15); font-size: 11px; line-height: 1.35; position: relative; }
+    .invoice-top { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 8px; }
+    .invoice-brand { display: flex; align-items: center; gap: 10px; }
+    .invoice-brand img { width: 70px; height: 70px; object-fit: contain; }
+    .invoice-brand-text strong { font-size: 13px; display: block; }
+    .invoice-brand-text small { font-size: 8px; color: #444; }
+    .invoice-title { text-align: right; }
+    .invoice-title h1 { font-size: 16px; text-decoration: underline; margin-bottom: 4px; }
+    .invoice-title p { font-size: 10px; }
+    .invoice-ref { display: flex; justify-content: space-between; margin-bottom: 10px; font-size: 10px; }
+    .invoice-ref table { border-collapse: collapse; }
+    .invoice-ref td { padding: 1px 6px; }
+    .invoice-ref td:first-child { font-weight: bold; width: 60px; }
+    .invoice-parties { display: flex; justify-content: space-between; margin-bottom: 12px; gap: 20px; }
+    .invoice-parties-box { flex: 1; border: 1px solid #999; padding: 8px; font-size: 10px; }
+    .invoice-parties-box strong { display: block; font-size: 10px; margin-bottom: 3px; text-decoration: underline; }
+    .invoice-items { width: 100%; border-collapse: collapse; margin: 10px 0; }
+    .invoice-items th { background: #e0e0e0; border: 1px solid #999; padding: 4px 6px; font-size: 9px; text-transform: uppercase; text-align: left; }
+    .invoice-items th.num { text-align: right; }
+    .invoice-items td { border: 1px solid #ccc; padding: 4px 6px; font-size: 10px; }
+    .invoice-items td.num { text-align: right; font-variant-numeric: tabular-nums; }
+    .invoice-totals { display: flex; justify-content: flex-end; margin-top: 8px; }
+    .invoice-totals table { border-collapse: collapse; width: 280px; }
+    .invoice-totals td { padding: 3px 8px; font-size: 10px; border-bottom: 1px solid #ddd; }
+    .invoice-totals td:first-child { text-align: right; font-weight: bold; }
+    .invoice-totals td:last-child { text-align: right; width: 100px; }
+    .invoice-totals .total-row td { border-top: 2px solid #000; font-weight: bold; font-size: 11px; }
+    .invoice-terms { margin-top: 12px; font-size: 9px; border-top: 1px solid #ccc; padding-top: 8px; }
+    .invoice-terms strong { font-size: 10px; }
+    .invoice-footer { display: flex; justify-content: space-between; margin-top: 30px; padding-top: 10px; border-top: 1px solid #999; font-size: 10px; }
+    .invoice-footer div { text-align: center; }
+    .invoice-footer .sig-line { border-top: 1px solid #000; width: 150px; margin-top: 40px; padding-top: 4px; }
+    .print-bar { position: fixed; top: 0; left: 0; right: 0; background: #1d6fd6; color: #fff; padding: 12px 20px; display: flex; justify-content: center; gap: 12px; z-index: 100; box-shadow: 0 2px 8px rgba(0,0,0,.2); }
+    .print-bar button { padding: 8px 20px; border: none; border-radius: 6px; cursor: pointer; font-size: 13px; font-weight: 600; }
+    .print-bar .btn-print { background: #fff; color: #1d6fd6; }
+    .print-bar .btn-back { background: rgba(255,255,255,.2); color: #fff; }
+    body { padding-top: 60px; }
+    @media print {
+      body { background: #fff; padding: 0; }
+      .print-bar { display: none !important; }
+      .invoice-sheet { border: none; box-shadow: none; width: 100%; padding: 0; margin: 0; }
+    }
+  </style>
+</head>
+<body>
+  <div class="print-bar">
+    <button class="btn-print" onclick="window.print()">Print Invoice</button>
+    <button class="btn-back" onclick="history.back()">Back</button>
+  </div>
+  <div class="invoice-sheet" id="invoiceSheet">
+    <div class="invoice-top">
+      <div class="invoice-brand">
+        <img src="assets/satc-logo-clean.png" alt="Sikat Araw Trading Corp." />
+        <div class="invoice-brand-text">
+          <strong>SIKAT ARAW TRADING CORP.</strong>
+          <small>Rm. 1115 State Center Bldg. 333 Juan Luna St., Binondo Manila</small><br>
+          <small>Tel. Nos. 02-8-242-5511 to 18, Fax. No.: 02-8-24255-15</small><br>
+          <small>email: cold_storage888@yahoo.com</small>
+        </div>
+      </div>
+      <div class="invoice-title">
+        <h1>SALES INVOICE</h1>
+      </div>
+    </div>
+    <div class="invoice-ref">
+      <div>
+        <table>
+          <tr><td>Date:</td><td id="printDate">-</td></tr>
+          <tr><td>Customer:</td><td id="printCustomerName">-</td></tr>
+          <tr><td>Address:</td><td id="printAddress">-</td></tr>
+          <tr><td>TIN:</td><td id="printTin">-</td></tr>
+          <tr><td>Terms:</td><td id="printTerms">-</td></tr>
+          <tr><td>Mode of Payment:</td><td id="printModePayment">-</td></tr>
+        </table>
+      </div>
+      <div>
+        <table>
+          <tr><td>SI No.:</td><td id="printSiNo">-</td></tr>
+        </table>
+      </div>
+    </div>
+    <div class="invoice-parties">
+      <div class="invoice-parties-box">
+        <strong>SOLD TO:</strong>
+        <div id="printSoldTo">-</div>
+      </div>
+      <div class="invoice-parties-box">
+        <strong>SHIP TO:</strong>
+        <div id="printShipTo">-</div>
+      </div>
+    </div>
+    <table class="invoice-items">
+      <thead>
+        <tr>
+          <th style="width:30px;">#</th>
+          <th>DESCRIPTION</th>
+          <th class="num" style="width:60px;">QTY</th>
+          <th style="width:50px;">UNIT</th>
+          <th class="num" style="width:80px;">UNIT PRICE</th>
+          <th class="num" style="width:90px;">AMOUNT</th>
+        </tr>
+      </thead>
+      <tbody id="printItemsBody">
+      </tbody>
+      <tfoot>
+        <tr><td colspan="5" class="num"><strong>SUBTOTAL</strong></td><td class="num" id="printSubtotal">₱0.00</td></tr>
+        <tr><td colspan="5" class="num">LESS: RETURNS / DISCOUNT</td><td class="num" id="printReturns">₱0.00</td></tr>
+        <tr><td colspan="5" class="num">ADD: FREIGHT</td><td class="num" id="printFreight">₱0.00</td></tr>
+        <tr><td colspan="5" class="num">NET OF DEDUCTION</td><td class="num" id="printNetDeduction">₱0.00</td></tr>
+        <tr><td colspan="5" class="num">LESS: EWT (1%)</td><td class="num" id="printEwt">₱0.00</td></tr>
+        <tr><td colspan="5" class="num"><strong>NET SALES</strong></td><td class="num" id="printNetSales"><strong>₱0.00</strong></td></tr>
+        <tr><td colspan="5" class="num">ADD: VAT (12%)</td><td class="num" id="printVat">₱0.00</td></tr>
+        <tr class="total-row"><td colspan="5" class="num"><strong>TOTAL AMOUNT DUE</strong></td><td class="num" id="printTotalDue"><strong>₱0.00</strong></td></tr>
+      </tfoot>
+    </table>
+    <div class="invoice-terms">
+      <strong>TERMS & CONDITIONS:</strong><br>
+      1. Payment is due within <span id="printTermsDays">30</span> days from invoice date.<br>
+      2. Goods once delivered shall not be returned except for valid reasons.<br>
+      3. A penalty charge of 2% per month shall be imposed on past due accounts.
+    </div>
+    <div class="invoice-footer">
+      <div>
+        <div class="sig-line"></div>
+        <strong>Prepared by:</strong><br>
+        <span id="printPreparedBy">-</span>
+      </div>
+      <div>
+        <div class="sig-line"></div>
+        <strong>Approved by:</strong><br>
+        <span id="printApprovedBy">-</span>
+      </div>
+      <div>
+        <div class="sig-line"></div>
+        <strong>Received by:</strong><br>
+        <span>Customer's Signature</span>
+      </div>
+    </div>
+  </div>
+  <script>
+    const p = new URLSearchParams(window.location.search);
+    const fmt = (v) => '₱' + Number(v || 0).toLocaleString('en-PH', {minimumFractionDigits: 2, maximumFractionDigits: 2});
+    document.getElementById('printSiNo').textContent = p.get('invNo') || '-';
+    document.getElementById('printDate').textContent = p.get('date') || '-';
+    document.getElementById('printCustomerName').textContent = p.get('customer') || '-';
+    document.getElementById('printAddress').textContent = p.get('address') || '-';
+    document.getElementById('printTin').textContent = p.get('tin') || '-';
+    document.getElementById('printTerms').textContent = (p.get('terms') || '30') + ' DAYS';
+    document.getElementById('printTermsDays').textContent = p.get('terms') || '30';
+    document.getElementById('printModePayment').textContent = p.get('modePayment') || 'B2B thru BDO';
+    document.getElementById('printSoldTo').innerHTML = (p.get('customer') || '-') + '<br>' + (p.get('address') || '') + '<br>TIN: ' + (p.get('tin') || '-');
+    document.getElementById('printShipTo').innerHTML = (p.get('customer') || '-') + '<br>' + (p.get('address') || '');
+    const gross = parseFloat(p.get('gross') || 0);
+    const freight = parseFloat(p.get('freight') || 0);
+    const returns = parseFloat(p.get('returns') || 0);
+    const ewt = parseFloat(p.get('ewt') || 0);
+    const netDeduction = gross + freight - returns;
+    const netSales = netDeduction - ewt;
+    const vat = netSales * 0.12;
+    const totalDue = netSales + vat;
+    document.getElementById('printItemsBody').innerHTML = '<tr><td>1</td><td>' + (p.get('description') || 'Assorted Fresh and Frozen Seafood') + '</td><td class="num">' + (p.get('qty') || '-') + '</td><td>' + (p.get('unit') || '-') + '</td><td class="num">' + fmt(p.get('unitPrice') || 0) + '</td><td class="num">' + fmt(gross) + '</td></tr>';
+    document.getElementById('printSubtotal').textContent = fmt(gross);
+    document.getElementById('printReturns').textContent = fmt(returns);
+    document.getElementById('printFreight').textContent = fmt(freight);
+    document.getElementById('printNetDeduction').textContent = fmt(netDeduction);
+    document.getElementById('printEwt').textContent = fmt(ewt);
+    document.getElementById('printNetSales').innerHTML = '<strong>' + fmt(netSales) + '</strong>';
+    document.getElementById('printVat').textContent = fmt(vat);
+    document.getElementById('printTotalDue').innerHTML = '<strong>' + fmt(totalDue) + '</strong>';
+    document.getElementById('printPreparedBy').textContent = p.get('preparedBy') || 'Office Admin';
+    document.getElementById('printApprovedBy').textContent = p.get('approvedBy') || 'Manager';
+  </script>
+</body>
+</html>
