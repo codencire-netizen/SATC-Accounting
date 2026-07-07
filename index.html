@@ -14951,21 +14951,16 @@ a,.link-like{color:#0b5fb7!important;font-weight:800!important;}
       state.theme = theme === "dark" ? "dark" : "light";
       document.body.dataset.theme = state.theme;
       document.documentElement.style.colorScheme = state.theme;
-      const themeIcon = document.getElementById("themeIcon");
-      const themeToggle = document.getElementById("themeToggle");
-      if (themeToggle) {
-        if (state.theme === "dark") {
-          themeIcon.textContent = "🌙";
-          themeToggle.innerHTML = '<span id="themeIcon">🌙</span> Dark';
-        } else {
-          themeIcon.textContent = "☀️";
-          themeToggle.innerHTML = '<span id="themeIcon">☀️</span> Light';
-        }
+      const themeToggleBtn = document.getElementById("themeToggleBtn");
+      const topbarToggle = document.getElementById("themeToggle");
+      if (state.theme === "dark") {
+        if (themeToggleBtn) themeToggleBtn.textContent = "Light Mode";
+        if (topbarToggle) topbarToggle.innerHTML = '<span id="themeIcon">🌙</span> Dark';
+      } else {
+        if (themeToggleBtn) themeToggleBtn.textContent = "Dark Mode";
+        if (topbarToggle) topbarToggle.innerHTML = '<span id="themeIcon">☀️</span> Light';
       }
-      if (els.themeToggleBtn) {
-        els.themeToggleBtn.textContent = state.theme === "dark" ? "Light Mode" : "Dark Mode";
-        els.themeToggleBtn.setAttribute("aria-pressed", state.theme === "dark" ? "true" : "false");
-      }
+      if (themeToggleBtn) themeToggleBtn.setAttribute("aria-pressed", state.theme === "dark" ? "true" : "false");
       saveTheme();
     }
 
