@@ -1015,8 +1015,13 @@
       display: flex;
       align-items: center;
       gap: 12px;
-      padding: 16px 22px;
+      padding: 16px 20px;
       flex-wrap: wrap;
+      background: var(--panel);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow-sm);
+      margin-bottom: 16px;
     }
     .filter-bar .search-box {
       flex: 1 1 260px;
@@ -1024,43 +1029,45 @@
     }
     .filter-bar .search-box input {
       width: 100%;
-      padding: 9px 12px 9px 36px;
+      padding: 10px 12px 10px 40px;
       border: 1px solid var(--border);
-      border-radius: var(--radius-md);
-      font-size: 13px;
-      background: var(--white);
+      border-radius: var(--radius-sm);
+      font-size: 14px;
+      background: var(--bg);
       color: var(--text);
-      transition: border-color 0.15s;
+      transition: var(--transition);
     }
     .filter-bar .search-box input:focus {
       outline: none;
-      border-color: var(--blue-500);
-      box-shadow: 0 0 0 3px rgba(29,111,214,0.12);
+      border-color: var(--accent);
+      box-shadow: 0 0 0 3px rgba(37,99,235,0.1);
+      background: var(--white);
     }
     .filter-bar .search-box svg {
       position: absolute;
-      left: 11px;
+      left: 12px;
       top: 50%;
       transform: translateY(-50%);
-      width: 16px;
-      height: 16px;
+      width: 18px;
+      height: 18px;
       color: var(--slate-500);
     }
     .filter-bar select {
-      padding: 9px 32px 9px 12px;
+      padding: 10px 32px 10px 12px;
       border: 1px solid var(--border);
-      border-radius: var(--radius-md);
-      font-size: 13px;
-      background: var(--white);
+      border-radius: var(--radius-sm);
+      font-size: 14px;
+      background: var(--bg);
       color: var(--text);
       cursor: pointer;
       appearance: auto;
       min-width: 140px;
+      transition: var(--transition);
     }
     .filter-bar select:focus {
       outline: none;
-      border-color: var(--blue-500);
-      box-shadow: 0 0 0 3px rgba(29,111,214,0.12);
+      border-color: var(--accent);
+      box-shadow: 0 0 0 3px rgba(37,99,235,0.1);
     }
     .filter-btn {
       display: inline-flex;
@@ -6100,10 +6107,34 @@
     }
 
     .empty-state {
-      padding: 40px 16px;
+      padding: 48px 24px;
       text-align: center;
       color: var(--muted);
       font-size: 14px;
+      line-height: 1.5;
+    }
+    .empty-state-icon {
+      width: 64px;
+      height: 64px;
+      margin: 0 auto 16px;
+      background: var(--slate-50);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: var(--slate-300);
+    }
+    .empty-state-title {
+      font-size: 16px;
+      font-weight: 600;
+      color: var(--text-secondary);
+      margin-bottom: 8px;
+    }
+    .empty-state-desc {
+      font-size: 13px;
+      color: var(--muted);
+      max-width: 400px;
+      margin: 0 auto;
     }
 
     .workbook-panel {
