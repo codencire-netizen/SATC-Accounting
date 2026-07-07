@@ -11387,6 +11387,28 @@ a,.link-like{color:#0b5fb7!important;font-weight:800!important;}
             </div>
           </div>
 
+          <!-- Sales Trend & Bar Chart Section -->
+          <div class="charts-grid" style="display:grid;grid-template-columns:2fr 1fr;gap:16px;margin-top:16px;">
+            <div class="card-saas" style="padding:20px;">
+              <div class="card-saas-header">
+                <div>
+                  <div class="card-saas-title">Sales Trend</div>
+                  <div class="card-saas-subtitle">Monthly sales performance over time</div>
+                </div>
+              </div>
+              <canvas id="salesTrendChart" height="200"></canvas>
+            </div>
+            <div class="card-saas" style="padding:20px;">
+              <div class="card-saas-header">
+                <div>
+                  <div class="card-saas-title">Sales by Section</div>
+                  <div class="card-saas-subtitle">Document type breakdown</div>
+                </div>
+              </div>
+              <canvas id="salesBarChart" height="200"></canvas>
+            </div>
+          </div>
+
           <div class="edit-panel edit-modal-overlay" id="summaryEditPanel" aria-hidden="true">
             <div class="edit-modal" id="summaryEditModal">
             <div class="edit-panel-head">
@@ -16799,6 +16821,132 @@ a,.link-like{color:#0b5fb7!important;font-weight:800!important;}
       renderSparkline("sparklineCollection", buildMonthlySeries(activeTxs, (tx) => tx.status === "PAID" ? Number(tx.netSales || 0) : Number(tx.payment || 0)), "#168246");
       renderSparkline("sparklineOverdue", buildMonthlySeries(activeTxs, (tx) => tx.status === "PASTDUE" ? Math.max(Number(tx.receivable || 0), 0) : 0), "#dc2626");
       renderSparkline("sparklineTicket", buildMonthlyAverageTicketSeries(activeTxs), "#155bb5");
+      renderSalesTrendChart(activeTxs);
+      renderSalesBarChart(activeTxs);
+    }
+
+    function renderSalesTrendChart(txs) {
+      const canvas = document.getElementById("salesTrendChart");
+      if (!canvas) return;
+      const ctx = canvas.getContext("2d");
+      const w = canvas.width = canvas.parentElement.clientWidth - 40;
+      const h = canvas.height = 200;
+      ctx.clearRect(0, 0, w, h);
+      const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+      const monthlyData = new Array(12).fill(0);
+      txs.forEach(tx => {
+        if (tx.date) {
+          const d = new Date(tx.date);
+          if (!isNaN(d.getTime())) monthlyData[d.getMonth()] += Number(tx.gross || 0);
+        }
+      });
+      const maxVal = Math.max(...monthlyData, 1);
+      const padding = { top: 20, right: 20, bottom: 40, left: 60 };
+      const chartW = w - padding.left - padding.right;
+      const chartH = h - padding.top - padding.bottom;
+      const stepX = chartW / 11;
+      ctx.strokeStyle = "#334155";
+      ctx.lineWidth = 1;
+      ctx.beginPath();
+      ctx.moveTo(padding.left, h - padding.bottom);
+      ctx.lineTo(w - padding.right, h - padding.bottom);
+      ctx.stroke();
+      ctx.beginPath();
+      ctx.moveTo(padding.left, padding.top);
+      ctx.lineTo(padding.left, h - padding.bottom);
+      ctx.stroke();
+      ctx.fillStyle = "#64748b";
+      ctx.font = "11px Inter, sans-serif";
+      ctx.textAlign = "center";
+      months.forEach((m, i) => {
+        const x = padding.left + i * stepX;
+        ctx.fillText(m, x, h - padding.bottom + 20);
+        ctx.beginPath();
+        ctx.strokeStyle = "#1e293b";
+        ctx.lineWidth = 0.5;
+        ctx.moveTo(x, padding.top);
+        ctx.lineTo(x, h - padding.bottom);
+        ctx.stroke();
+      });
+      ctx.beginPath();
+      ctx.strokeStyle = "#3b82f6";
+      ctx.lineWidth = 2.5;
+      ctx.lineJoin = "round";
+      monthlyData.forEach((val, i) => {
+        const x = padding.left + i * stepX;
+        const y = h - padding.bottom - (val / maxVal) * chartH;
+        if (i === 0) ctx.moveTo(x, y);
+        else ctx.lineTo(x, y);
+      });
+      ctx.stroke();
+      const gradient = ctx.createLinearGradient(0, padding.top, 0, h - padding.bottom);
+      gradient.addColorStop(0, "rgba(59, 130, 246, 0.3)");
+      gradient.addColorStop(1, "rgba(59, 130, 246, 0)");
+      ctx.beginPath();
+      ctx.moveTo(padding.left, h - padding.bottom);
+      monthlyData.forEach((val, i) => {
+        const x = padding.left + i * stepX;
+        const y = h - padding.bottom - (val / maxVal) * chartH;
+        ctx.lineTo(x, y);
+      });
+      ctx.lineTo(padding.left + 11 * stepX, h - padding.bottom);
+      ctx.closePath();
+      ctx.fillStyle = gradient;
+      ctx.fill();
+      monthlyData.forEach((val, i) => {
+        if (val > 0) {
+          const x = padding.left + i * stepX;
+          const y = h - padding.bottom - (val / maxVal) * chartH;
+          ctx.beginPath();
+          ctx.arc(x, y, 4, 0, Math.PI * 2);
+          ctx.fillStyle = "#3b82f6";
+          ctx.fill();
+          ctx.strokeStyle = "#1e293b";
+          ctx.lineWidth = 2;
+          ctx.stroke();
+        }
+      });
+    }
+
+    function renderSalesBarChart(txs) {
+      const canvas = document.getElementById("salesBarChart");
+      if (!canvas) return;
+      const ctx = canvas.getContext("2d");
+      const w = canvas.width = canvas.parentElement.clientWidth - 40;
+      const h = canvas.height = 200;
+      ctx.clearRect(0, 0, w, h);
+      const sections = {};
+      txs.forEach(tx => {
+        const sec = tx.section || "Other";
+        sections[sec] = (sections[sec] || 0) + Number(tx.gross || 0);
+      });
+      const entries = Object.entries(sections).sort((a, b) => b[1] - a[1]).slice(0, 6);
+      const colors = ["#3b82f6", "#22c55e", "#8b5cf6", "#f59e0b", "#ef4444", "#06b6d4"];
+      const maxVal = Math.max(...entries.map(e => e[1]), 1);
+      const padding = { top: 20, right: 20, bottom: 50, left: 10 };
+      const chartW = w - padding.left - padding.right;
+      const barW = Math.min(40, chartW / entries.length - 10);
+      ctx.strokeStyle = "#334155";
+      ctx.lineWidth = 1;
+      ctx.beginPath();
+      ctx.moveTo(padding.left, h - padding.bottom);
+      ctx.lineTo(w - padding.right, h - padding.bottom);
+      ctx.stroke();
+      entries.forEach(([name, val], i) => {
+        const barH = (val / maxVal) * (h - padding.top - padding.bottom);
+        const x = padding.left + (i * (chartW / entries.length)) + (chartW / entries.length - barW) / 2;
+        const y = h - padding.bottom - barH;
+        ctx.fillStyle = colors[i % colors.length];
+        ctx.beginPath();
+        ctx.roundRect(x, y, barW, barH, [4, 4, 0, 0]);
+        ctx.fill();
+        ctx.fillStyle = "#64748b";
+        ctx.font = "10px Inter, sans-serif";
+        ctx.textAlign = "center";
+        const label = name.length > 8 ? name.substring(0, 8) + "…" : name;
+        ctx.fillText(label, x + barW / 2, h - padding.bottom + 14);
+        ctx.fillText(val >= 1000 ? (val / 1000).toFixed(0) + "K" : val.toFixed(0), x + barW / 2, y - 6);
+      });
     }
     function printWithView(viewName) {
       document.body.dataset.printView = viewName;
