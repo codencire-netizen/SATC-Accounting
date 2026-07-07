@@ -5202,20 +5202,22 @@
 
     .account-field {
       display: grid;
-      gap: 4px;
+      gap: 6px;
       min-width: 0;
-      margin-top: 10px;
+      margin-top: 12px;
     }
 
     .account-field:first-of-type {
-      margin-top: 12px;
+      margin-top: 14px;
     }
 
     .account-field label {
       margin: 0;
-      font-size: 0.79rem;
-      font-weight: 800;
-      color: #0d2030;
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--text-secondary);
+      text-transform: uppercase;
+      letter-spacing: 0.3px;
     }
 
     .account-field input,
@@ -5223,8 +5225,8 @@
     .account-field textarea {
       width: 100%;
       min-width: 0;
-      padding: 8px 11px;
-      border-radius: 10px;
+      padding: 10px 14px;
+      border-radius: var(--radius-sm);
       border: 1px solid #dbe4ee;
       background: linear-gradient(180deg, #ffffff 0%, #fbfdff 100%);
       box-shadow: 0 1px 0 rgba(255, 255, 255, 0.6) inset;
@@ -5954,30 +5956,38 @@
     .overlay {
       position: fixed;
       inset: 0;
-      background: rgba(15, 23, 42, 0.6);
+      background: rgba(15, 23, 42, 0.5);
       backdrop-filter: blur(4px);
       display: none;
       align-items: center;
       justify-content: center;
-      padding: 18px;
+      padding: 20px;
       z-index: 1000;
+      animation: fadeIn 0.2s ease;
     }
     .overlay.open { display: flex; }
+    @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
 
     .modal {
       width: min(920px, 100%);
-      max-height: min(92vh, 980px);
+      max-height: min(90vh, 800px);
       overflow: auto;
       background: var(--white);
-      border-radius: var(--radius-xl);
-      box-shadow: 0 24px 64px rgba(15, 23, 42, 0.2);
+      border-radius: var(--radius-lg);
+      box-shadow: var(--shadow-xl);
       border: 1px solid var(--border);
+      animation: modalSlideIn 0.25s ease;
+    }
+    @keyframes modalSlideIn {
+      from { opacity: 0; transform: translateY(-20px) scale(0.95); }
+      to { opacity: 1; transform: translateY(0) scale(1); }
     }
 
     .modal-head {
-      padding: 16px 20px;
-      background: linear-gradient(135deg, var(--navy-900), var(--navy-800));
-      color: #fff;
+      padding: 20px 24px;
+      background: var(--white);
+      border-bottom: 1px solid var(--border);
+      color: var(--text);
       display: flex;
       align-items: center;
       justify-content: space-between;
@@ -5985,11 +5995,11 @@
     }
     .modal-head h3 {
       margin: 0;
-      font-size: 15px;
-      font-weight: 700;
+      font-size: 18px;
+      font-weight: 600;
     }
     .modal-body {
-      padding: 20px;
+      padding: 24px;
       color: var(--text);
       background: transparent;
     }
