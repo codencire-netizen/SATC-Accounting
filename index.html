@@ -5756,11 +5756,15 @@
 
     .audit-log-item {
       border: 1px solid var(--border);
-      border-radius: var(--radius-sm);
-      padding: 10px 14px;
-      background: var(--white);
+      border-radius: var(--radius);
+      padding: 12px 16px;
+      background: var(--panel);
       display: grid;
-      gap: 4px;
+      gap: 6px;
+      transition: var(--transition);
+    }
+    .audit-log-item:hover {
+      box-shadow: var(--shadow-sm);
     }
 
     .audit-log-item .topline {
@@ -5772,17 +5776,17 @@
 
     .audit-log-item .action {
       font-weight: 700;
-      color: var(--navy-900);
+      color: var(--text);
     }
 
     .audit-log-item .time {
-      font-size: 0.78rem;
+      font-size: 12px;
       color: var(--muted);
       white-space: nowrap;
     }
 
     .audit-log-item .meta {
-      font-size: 0.84rem;
+      font-size: 13px;
       color: var(--muted);
       line-height: 1.35;
     }
@@ -5819,48 +5823,55 @@
     .audit-dashboard-grid {
       display: grid;
       grid-template-columns: repeat(4, minmax(0, 1fr));
-      gap: 14px;
+      gap: 16px;
+      margin-bottom: 16px;
     }
 
     .audit-summary-card {
       position: relative;
       overflow: hidden;
-      background: linear-gradient(180deg, #ffffff 0%, #f8fbff 100%);
-      border: 1px solid #dfe7f0;
-      border-radius: 18px;
+      background: var(--panel);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
       padding: 18px;
-      box-shadow: 0 14px 30px rgba(15, 35, 70, 0.08);
+      box-shadow: var(--shadow-card);
       display: grid;
-      gap: 6px;
+      gap: 8px;
+      transition: var(--transition);
+    }
+    .audit-summary-card:hover {
+      box-shadow: var(--shadow-card-hover);
+      transform: translateY(-2px);
     }
 
     .audit-summary-card::after {
       content: "";
       position: absolute;
-      width: 76px;
-      height: 76px;
-      border-radius: 999px;
-      right: -24px;
-      top: -24px;
-      background: rgba(29, 111, 214, 0.12);
+      width: 84px;
+      height: 84px;
+      border-radius: 50%;
+      right: -30px;
+      top: -28px;
+      background: rgba(59,130,246,.06);
     }
 
-    .audit-summary-card.accent-green::after { background: rgba(22, 130, 70, 0.14); }
-    .audit-summary-card.accent-blue::after { background: rgba(29, 111, 214, 0.14); }
-    .audit-summary-card.accent-gold::after { background: rgba(242, 182, 50, 0.18); }
+    .audit-summary-card.accent-green::after { background: rgba(22,163,74,.08); }
+    .audit-summary-card.accent-blue::after { background: rgba(59,130,246,.08); }
+    .audit-summary-card.accent-gold::after { background: rgba(234,179,8,.08); }
 
     .audit-summary-card span {
-      font-size: 0.78rem;
+      font-size: 12px;
       text-transform: uppercase;
-      letter-spacing: 0.06em;
+      letter-spacing: 0.5px;
       color: var(--muted);
-      font-weight: 800;
+      font-weight: 600;
     }
 
     .audit-summary-card strong {
-      font-size: clamp(1.25rem, 2vw, 1.85rem);
-      color: var(--navy-900);
-      line-height: 1.05;
+      font-size: clamp(20px, 2vw, 27px);
+      color: var(--text);
+      font-weight: 700;
+      line-height: 1.1;
       max-width: 100%;
       overflow: hidden;
       text-overflow: ellipsis;
