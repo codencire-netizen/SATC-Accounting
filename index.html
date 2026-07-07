@@ -143,6 +143,18 @@
     [data-theme="dark"] .section-title h2 { color: #f1f5f9 !important; }
     [data-theme="dark"] .section-head p,
     [data-theme="dark"] .section-title p { color: #94a3b8 !important; }
+    [data-theme="dark"] body:not(.auth-locked) { background: #0f172a !important; color: #f1f5f9 !important; }
+    [data-theme="dark"] body:not(.auth-locked) .app-shell { background: #0f172a !important; }
+    [data-theme="dark"] body:not(.auth-locked) .content { background: #0f172a !important; }
+    [data-theme="dark"] body:not(.auth-locked) .section > .panel { background: #1e293b !important; border-color: #334155 !important; }
+    [data-theme="dark"] body:not(.auth-locked) .section-head,
+    [data-theme="dark"] body:not(.auth-locked) .summary-modern-head,
+    [data-theme="dark"] body:not(.auth-locked) .toolbar,
+    [data-theme="dark"] body:not(.auth-locked) .filters { background: #1e293b !important; color: #f1f5f9 !important; border-color: #334155 !important; }
+    [data-theme="dark"] body:not(.auth-locked) .summary-metric-card { background: #1e293b !important; border-color: #334155 !important; }
+    [data-theme="dark"] body:not(.auth-locked) .summary-progress-card { background: #1e293b !important; border-color: #334155 !important; }
+    [data-theme="dark"] body:not(.auth-locked) .audit-log-item { background: #1e293b !important; border-color: #334155 !important; }
+    [data-theme="dark"] body:not(.auth-locked) .empty-state { background: #0f172a !important; }
 
     * { box-sizing: border-box; }
     html, body { margin: 0; padding: 0; }
@@ -7222,23 +7234,6 @@
       position: relative;
       z-index: 1;
       margin: 0 0 6px;
-      font-size: clamp(20px, 2vw, 27px);
-      font-weight: 700;
-      line-height: 1.1;
-      letter-spacing: -0.02em;
-      color: var(--text);
-    }
-
-    .summary-metric-sub {
-      position: relative;
-      z-index: 1;
-      margin: 0;
-      font-size: 13px;
-      color: var(--muted);
-      line-height: 1.3;
-    }
-
-    .summary-metric-value {
       font-size: clamp(21px, 1.8vw, 30px);
       line-height: 1.05;
       color: var(--text);
