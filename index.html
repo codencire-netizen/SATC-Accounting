@@ -76,6 +76,62 @@
       --transition-fast: all 0.15s ease;
     }
 
+    /* === Dark Mode Tokens === */
+    [data-theme="dark"] {
+      --bg: #0f172a;
+      --panel: #1e293b;
+      --panel-soft: #1e293b;
+      --text: #f1f5f9;
+      --text-secondary: #94a3b8;
+      --muted: #64748b;
+      --border: #334155;
+      --border-light: #1e293b;
+      --slate-50: #1e293b;
+      --slate-100: #334155;
+      --white: #1e293b;
+    }
+    [data-theme="dark"] .toast {
+      background: #1e293b;
+      border-color: #334155;
+      color: #f1f5f9;
+    }
+    [data-theme="dark"] .modal {
+      background: #1e293b;
+      border-color: #334155;
+    }
+    [data-theme="dark"] .modal-head {
+      background: #0f172a;
+      border-color: #334155;
+    }
+    [data-theme="dark"] .filter-bar {
+      background: #1e293b;
+      border-color: #334155;
+    }
+    [data-theme="dark"] .filter-bar input,
+    [data-theme="dark"] .filter-bar select {
+      background: #0f172a;
+      border-color: #334155;
+      color: #f1f5f9;
+    }
+    [data-theme="dark"] .table-card-body thead th {
+      background: #0f172a;
+      color: #94a3b8;
+    }
+    [data-theme="dark"] .table-card-body tbody tr:hover td {
+      background: #1e293b;
+    }
+    [data-theme="dark"] .bottom-nav {
+      background: #1e293b;
+      border-color: #334155;
+    }
+    [data-theme="dark"] .account-field input,
+    [data-theme="dark"] .account-field select,
+    [data-theme="dark"] .account-field textarea {
+      background: #0f172a;
+      border-color: #334155;
+      color: #f1f5f9;
+    }
+
     * { box-sizing: border-box; }
     html, body { margin: 0; padding: 0; }
     html { height: 100%; }
@@ -11007,6 +11063,9 @@ a,.link-like{color:#0b5fb7!important;font-weight:800!important;}
         </div>
       </div>
       <div class="topbar-right">
+        <button class="topbar-pill" id="themeToggle" type="button" aria-label="Toggle dark mode" style="cursor:pointer;background:var(--bg);border:1px solid var(--border);padding:6px 12px;border-radius:var(--radius-pill);font-size:12px;font-weight:600;color:var(--text-secondary);transition:var(--transition);">
+          <span id="themeIcon">☀️</span> Light
+        </button>
         <div class="topbar-pill status-online" id="topbarLanStatus">
           <span class="pill-dot"></span> Office LAN
         </div>
@@ -14892,6 +14951,17 @@ a,.link-like{color:#0b5fb7!important;font-weight:800!important;}
       state.theme = theme === "dark" ? "dark" : "light";
       document.body.dataset.theme = state.theme;
       document.documentElement.style.colorScheme = state.theme;
+      const themeIcon = document.getElementById("themeIcon");
+      const themeToggle = document.getElementById("themeToggle");
+      if (themeToggle) {
+        if (state.theme === "dark") {
+          themeIcon.textContent = "🌙";
+          themeToggle.innerHTML = '<span id="themeIcon">🌙</span> Dark';
+        } else {
+          themeIcon.textContent = "☀️";
+          themeToggle.innerHTML = '<span id="themeIcon">☀️</span> Light';
+        }
+      }
       if (els.themeToggleBtn) {
         els.themeToggleBtn.textContent = state.theme === "dark" ? "Light Mode" : "Dark Mode";
         els.themeToggleBtn.setAttribute("aria-pressed", state.theme === "dark" ? "true" : "false");
@@ -19293,6 +19363,12 @@ a,.link-like{color:#0b5fb7!important;font-weight:800!important;}
       if (els.themeToggleBtn) els.themeToggleBtn.addEventListener("click", () => {
         applyTheme(state.theme === "dark" ? "light" : "dark");
       });
+      const themeToggleBtn = document.getElementById("themeToggle");
+      if (themeToggleBtn) {
+        themeToggleBtn.addEventListener("click", () => {
+          applyTheme(state.theme === "dark" ? "light" : "dark");
+        });
+      }
       if (els.logoutBtn) els.logoutBtn.addEventListener("click", () => {
         if (!confirm("Sign out of the office system?")) return;
         signOutCurrentUser("logout");
