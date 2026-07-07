@@ -10,30 +10,30 @@
   <script src="data/invoice-database.js?v=7"></script>
   <style>
     :root {
-      /* === SaaS Design Tokens === */
-      --bg: #f8fafc;
-      --panel: #ffffff;
-      --panel-soft: #f8fafc;
+      /* === SaaS Design Tokens (Dark Default) === */
+      --bg: #0f172a;
+      --panel: #1e293b;
+      --panel-soft: #1e293b;
       --navy: #0f172a;
       --navy-2: #1e293b;
-      --accent: #2563eb;
-      --accent-2: #1d4ed8;
-      --success: #16a34a;
-      --danger: #dc2626;
+      --accent: #3b82f6;
+      --accent-2: #2563eb;
+      --success: #22c55e;
+      --danger: #ef4444;
       --warning: #f59e0b;
-      --text: #0f172a;
-      --text-secondary: #475569;
+      --text: #f1f5f9;
+      --text-secondary: #94a3b8;
       --muted: #64748b;
-      --border: #e2e8f0;
-      --border-light: #f1f5f9;
-      --shadow: 0 1px 3px rgba(0,0,0,0.1), 0 1px 2px rgba(0,0,0,0.06);
-      --shadow-sm: 0 1px 2px rgba(0,0,0,0.05);
-      --shadow-md: 0 4px 6px -1px rgba(0,0,0,0.1), 0 2px 4px -2px rgba(0,0,0,0.1);
-      --shadow-lg: 0 10px 15px -3px rgba(0,0,0,0.1), 0 4px 6px -4px rgba(0,0,0,0.1);
-      --shadow-xl: 0 20px 25px -5px rgba(0,0,0,0.1), 0 8px 10px -6px rgba(0,0,0,0.1);
-      --shadow-card: 0 1px 3px rgba(0,0,0,0.08), 0 1px 2px rgba(0,0,0,0.04);
-      --shadow-card-hover: 0 4px 12px rgba(0,0,0,0.12);
-      --shadow-sidebar: 4px 0 24px rgba(0,0,0,0.15);
+      --border: #334155;
+      --border-light: #1e293b;
+      --shadow: 0 1px 3px rgba(0,0,0,0.3), 0 1px 2px rgba(0,0,0,0.2);
+      --shadow-sm: 0 1px 2px rgba(0,0,0,0.2);
+      --shadow-md: 0 4px 6px -1px rgba(0,0,0,0.3), 0 2px 4px -2px rgba(0,0,0,0.2);
+      --shadow-lg: 0 10px 15px -3px rgba(0,0,0,0.3), 0 4px 6px -4px rgba(0,0,0,0.2);
+      --shadow-xl: 0 20px 25px -5px rgba(0,0,0,0.3), 0 8px 10px -6px rgba(0,0,0,0.2);
+      --shadow-card: 0 1px 3px rgba(0,0,0,0.2), 0 1px 2px rgba(0,0,0,0.15);
+      --shadow-card-hover: 0 4px 12px rgba(0,0,0,0.3);
+      --shadow-sidebar: 4px 0 24px rgba(0,0,0,0.4);
       --radius: 12px;
       --radius-sm: 8px;
       --radius-md: 12px;
@@ -10670,7 +10670,7 @@ a,.link-like{color:#0b5fb7!important;font-weight:800!important;}
 </style>
 
 </head>
-<body class="auth-locked" data-ui-build="modern-2026" data-ui-phase="13-light">
+<body class="auth-locked" data-ui-build="modern-2026" data-ui-phase="13-light" data-theme="dark">
   <div class="login-screen" id="loginScreen" aria-labelledby="loginTitle">
     <div class="phase12-login-card">
       <section class="phase12-login-brand-panel" aria-label="Sikat Araw brand">
@@ -14967,10 +14967,10 @@ a,.link-like{color:#0b5fb7!important;font-weight:800!important;}
       const topbarToggle = document.getElementById("themeToggle");
       if (state.theme === "dark") {
         if (themeToggleBtn) themeToggleBtn.textContent = "Light Mode";
-        if (topbarToggle) topbarToggle.innerHTML = '<span id="themeIcon">🌙</span> Dark';
+        if (topbarToggle) topbarToggle.innerHTML = '<span id="themeIcon">☀️</span> Light';
       } else {
         if (themeToggleBtn) themeToggleBtn.textContent = "Dark Mode";
-        if (topbarToggle) topbarToggle.innerHTML = '<span id="themeIcon">☀️</span> Light';
+        if (topbarToggle) topbarToggle.innerHTML = '<span id="themeIcon">🌙</span> Dark';
       }
       if (themeToggleBtn) themeToggleBtn.setAttribute("aria-pressed", state.theme === "dark" ? "true" : "false");
       saveTheme();
@@ -14986,7 +14986,7 @@ a,.link-like{color:#0b5fb7!important;font-weight:800!important;}
       } catch (err) {
         console.warn("Could not load theme", err);
       }
-      applyTheme("light");
+      applyTheme("dark");
     }
 
     function updateAuthBadges() {
