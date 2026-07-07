@@ -369,6 +369,34 @@
 
     /* === End SaaS Component Library === */
 
+    /* Chart Tooltip */
+    .chart-tooltip {
+      position: fixed;
+      background: #1e293b;
+      color: #f1f5f9;
+      padding: 8px 12px;
+      border-radius: 8px;
+      font-size: 12px;
+      font-weight: 500;
+      pointer-events: none;
+      z-index: 1000;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+      border: 1px solid #334155;
+      white-space: nowrap;
+      display: none;
+      transition: opacity 0.15s ease;
+    }
+    .chart-tooltip .tooltip-label {
+      color: #94a3b8;
+      font-size: 11px;
+      margin-bottom: 2px;
+    }
+    .chart-tooltip .tooltip-value {
+      color: #f1f5f9;
+      font-weight: 600;
+      font-size: 13px;
+    }
+
     .app-layout {
       display: flex;
       min-height: 100vh;
@@ -16825,6 +16853,27 @@ a,.link-like{color:#0b5fb7!important;font-weight:800!important;}
       renderSalesBarChart(activeTxs);
     }
 
+    function showTooltip(x, y, label, value) {
+      let tooltip = document.getElementById("chartTooltip");
+      if (!tooltip) {
+        tooltip = document.createElement("div");
+        tooltip.id = "chartTooltip";
+        tooltip.className = "chart-tooltip";
+        tooltip.innerHTML = '<div class="tooltip-label"></div><div class="tooltip-value"></div>';
+        document.body.appendChild(tooltip);
+      }
+      tooltip.querySelector(".tooltip-label").textContent = label;
+      tooltip.querySelector(".tooltip-value").textContent = value;
+      tooltip.style.left = (x + 12) + "px";
+      tooltip.style.top = (y - 10) + "px";
+      tooltip.style.display = "block";
+    }
+
+    function hideTooltip() {
+      const tooltip = document.getElementById("chartTooltip");
+      if (tooltip) tooltip.style.display = "none";
+    }
+
     function renderSalesTrendChart(txs) {
       const canvas = document.getElementById("salesTrendChart");
       if (!canvas) return;
@@ -16906,6 +16955,23 @@ a,.link-like{color:#0b5fb7!important;font-weight:800!important;}
           ctx.stroke();
         }
       });
+      canvas._chartData = { months, monthlyData, padding, stepX, chartH, maxVal, h };
+      canvas.onmousemove = (e) => {
+        const rect = canvas.getBoundingClientRect();
+        const mx = e.clientX - rect.left;
+        const my = e.clientY - rect.top;
+        let found = false;
+        monthlyData.forEach((val, i) => {
+          const x = padding.left + i * stepX;
+          const y = h - padding.bottom - (val / maxVal) * chartH;
+          if (Math.abs(mx - x) < 10 && Math.abs(my - y) < 10) {
+            showTooltip(e.clientX, e.clientY, months[i], formatCurrency(val));
+            found = true;
+          }
+        });
+        if (!found) hideTooltip();
+      };
+      canvas.onmouseleave = () => hideTooltip();
     }
 
     function renderSalesBarChart(txs) {
@@ -16932,10 +16998,12 @@ a,.link-like{color:#0b5fb7!important;font-weight:800!important;}
       ctx.moveTo(padding.left, h - padding.bottom);
       ctx.lineTo(w - padding.right, h - padding.bottom);
       ctx.stroke();
+      const barPositions = [];
       entries.forEach(([name, val], i) => {
         const barH = (val / maxVal) * (h - padding.top - padding.bottom);
         const x = padding.left + (i * (chartW / entries.length)) + (chartW / entries.length - barW) / 2;
         const y = h - padding.bottom - barH;
+        barPositions.push({ x, y, w: barW, h: barH, name, val });
         ctx.fillStyle = colors[i % colors.length];
         ctx.beginPath();
         ctx.roundRect(x, y, barW, barH, [4, 4, 0, 0]);
@@ -16947,6 +17015,20 @@ a,.link-like{color:#0b5fb7!important;font-weight:800!important;}
         ctx.fillText(label, x + barW / 2, h - padding.bottom + 14);
         ctx.fillText(val >= 1000 ? (val / 1000).toFixed(0) + "K" : val.toFixed(0), x + barW / 2, y - 6);
       });
+      canvas.onmousemove = (e) => {
+        const rect = canvas.getBoundingClientRect();
+        const mx = e.clientX - rect.left;
+        const my = e.clientY - rect.top;
+        let found = false;
+        barPositions.forEach(bar => {
+          if (mx >= bar.x && mx <= bar.x + bar.w && my >= bar.y && my <= bar.y + bar.h) {
+            showTooltip(e.clientX, e.clientY, bar.name, formatCurrency(bar.val));
+            found = true;
+          }
+        });
+        if (!found) hideTooltip();
+      };
+      canvas.onmouseleave = () => hideTooltip();
     }
     function printWithView(viewName) {
       document.body.dataset.printView = viewName;
