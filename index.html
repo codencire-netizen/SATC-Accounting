@@ -15246,7 +15246,7 @@ a,.link-like{color:#0b5fb7!important;font-weight:800!important;}
 
     function syncAuthUi() {
       document.body.classList.toggle("auth-locked", !state.authenticated);
-      if (state.authenticated) document.body.setAttribute('data-theme', 'light');
+      if (state.authenticated) document.body.setAttribute('data-theme', 'dark');
       if (els.logoutBtn) els.logoutBtn.hidden = !state.authenticated;
       if (els.loginRemember && !state.authenticated) els.loginRemember.checked = false;
       updateAuthBadges();
@@ -21763,7 +21763,7 @@ body:not(.auth-locked) .btn-dark:hover{
 (function(){
   function applyPhase13(){
     document.body.setAttribute('data-ui-phase','13-light');
-    document.body.setAttribute('data-theme','light');
+    document.body.setAttribute('data-theme','dark');
   }
   if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',applyPhase13);
   else applyPhase13();
